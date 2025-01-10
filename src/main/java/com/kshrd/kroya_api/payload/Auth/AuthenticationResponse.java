@@ -29,4 +29,6 @@ public class AuthenticationResponse {
 
     @JsonProperty("created_date")
     private String createdDate;
+
+    private String role;
 }

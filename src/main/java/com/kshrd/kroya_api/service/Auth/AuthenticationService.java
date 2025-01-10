@@ -137,6 +137,7 @@ public class AuthenticationService {
 
         return BaseResponse.builder()
                 .payload(AuthenticationResponse.builder()
+                        .role(user.getRole())
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
                         .profileImage(user.getProfileImage())
@@ -422,6 +423,7 @@ public class AuthenticationService {
                 .message("Password created successfully")
                 .statusCode("200")
                 .payload(AuthenticationResponse.builder()
+                        .role(user.getRole())
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
                         .profileImage(user.getProfileImage())
