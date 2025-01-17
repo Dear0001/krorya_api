@@ -62,7 +62,7 @@ public class SecurityConfiguration {
                                 "/api/v1/favorite/**",
                                 "/api/v1/user/**",
                                 "/api/v1/foods/**"
-                        ).hasRole("USER")
+                        ).hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling
