@@ -53,5 +53,4 @@ public class PurchaseEntity {
     @ManyToOne
     @JoinColumn(name = "food_sell_id")
     private FoodSellEntity foodSell;
-
 }
