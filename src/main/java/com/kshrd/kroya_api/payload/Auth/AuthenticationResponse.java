@@ -31,4 +31,5 @@ public class AuthenticationResponse {
     private String createdDate;
 
     private String role;
+    private boolean isDeleted = false;
 }

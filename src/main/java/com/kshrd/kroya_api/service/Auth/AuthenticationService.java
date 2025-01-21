@@ -130,6 +130,8 @@ public class AuthenticationService {
 
         var refreshToken = jwtService.generateRefreshToken(user);
 
+        // Ensure isDeleted is set to false
+        user.setDeleted(false);
         revokeAllUserTokens(user);
         saveUserToken(user, jwtToken);
 
@@ -138,6 +140,7 @@ public class AuthenticationService {
         return BaseResponse.builder()
                 .payload(AuthenticationResponse.builder()
                         .role(user.getRole())
+                        .isDeleted(user.isDeleted())
                         .accessToken(jwtToken)
                         .refreshToken(refreshToken)
                         .profileImage(user.getProfileImage())

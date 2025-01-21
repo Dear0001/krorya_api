@@ -48,6 +48,9 @@ public class UserEntity implements UserDetails {
     @Column(name = "role", length = 20, nullable = true)
     private String role;
 
+    @Column(name = "is_deleted", nullable = true)
+    private boolean isDeleted = false;
+
     @Column(name = "created_at", nullable = true, updatable = false, columnDefinition = "timestamp default now()")
     private LocalDateTime createdAt;
 

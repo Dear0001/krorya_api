@@ -18,6 +18,7 @@ public class UserEntityDTO {
     private String phoneNumber;
     private String password;
     private String role;
+    private boolean isDeleted = false;
     private boolean isEmailVerified;
     private String emailVerifiedAt;
     private String createdAt;
