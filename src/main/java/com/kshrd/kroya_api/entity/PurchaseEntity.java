@@ -50,6 +50,7 @@ public class PurchaseEntity {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private UserEntity buyer;
 
+
     @ManyToOne
     @JoinColumn(name = "food_sell_id")
     private FoodSellEntity foodSell;
