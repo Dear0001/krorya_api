@@ -10,6 +10,6 @@ import lombok.NoArgsConstructor;
 public class Ingredient {
     private Long id;
     private String name;
-    private Double quantity;
+    private String quantity;
     private Double price;
 }

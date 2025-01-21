@@ -23,7 +23,7 @@ public class ReceiptResponse {
    private String payer;
    private String seller;
    private String sellerPhoneNumber;
-   private Integer quantity;
+   private String quantity;
    private Double totalPrice;
 
 }

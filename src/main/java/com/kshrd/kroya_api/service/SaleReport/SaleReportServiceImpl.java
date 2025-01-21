@@ -158,7 +158,7 @@ public class SaleReportServiceImpl implements SaleReportService {
                 .remark(purchase.getRemark())
                 .paymentType(purchase.getPaymentType())
                 .purchaseStatusType(purchase.getPurchaseStatusType())
-                .quantity(purchase.getQuantity())
+                .quantity(purchase.getQuantity()) // Handle as String
                 .totalPrice(purchase.getTotalPrice())
                 .buyerInformation(UserProfileDTO.builder()
                         .userId(Long.valueOf(purchase.getBuyer().getId()))

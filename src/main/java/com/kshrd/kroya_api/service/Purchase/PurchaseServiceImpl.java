@@ -66,9 +66,9 @@ public class PurchaseServiceImpl implements PurchaseService {
         }
 
         // Ensure quantity and totalPrice are not null
-        Integer quantity = purchaseRequest.getQuantity();
+        String quantity = purchaseRequest.getQuantity();
         Double totalPrice = purchaseRequest.getTotalPrice();
-        if (quantity == null || quantity <= 0) {
+        if (quantity == null || Integer.parseInt(quantity) <= 0) {
             throw new IllegalArgumentException("Quantity must be provided and greater than zero.");
         }
         if (totalPrice == null || totalPrice <= 0) {
