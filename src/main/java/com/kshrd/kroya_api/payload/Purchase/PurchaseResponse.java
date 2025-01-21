@@ -21,7 +21,7 @@ public class PurchaseResponse {
     private String remark;
     private PaymentType paymentType;
     private PurchaseStatusType purchaseStatusType;
-    private Integer quantity;
+    private String quantity;
     private Double totalPrice;
     private LocalDateTime purchaseDate;
     private UserProfileDTO buyerInformation;

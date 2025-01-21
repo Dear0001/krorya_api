@@ -21,7 +21,7 @@ public class BuyerOrderCardResponse {
     private Long foodSellId;
     private String name;
     private List<PhotoDTO> photo;
-    private Integer quantity;
+    private String quantity;
     private Double totalPrice;
     private LocalDateTime dateCooking;
     private Boolean isOrderable;

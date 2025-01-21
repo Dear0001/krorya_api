@@ -18,6 +18,6 @@ import java.time.LocalDateTime;
 public class PurchaseRequest {
     private Long foodSellId;
     private String remark;
-    private Integer quantity;
+    private String quantity;
     private Double totalPrice;
 }

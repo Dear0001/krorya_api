@@ -38,8 +38,8 @@ public class PurchaseEntity {
     @Column(name = "purchase_status_type")
     private PurchaseStatusType purchaseStatusType;
 
-    @Column(name = "quantity")
-    private Integer quantity;
+    @Column(name = "quantity", length = 100)
+    private String quantity;
 
     @Column(name = "total_price")
     private Double totalPrice;
