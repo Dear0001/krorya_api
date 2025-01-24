@@ -166,7 +166,9 @@ public class BankServiceImpl implements BankService {
         UserDTO userDTO = new UserDTO(
                 bankEntity.getUser().getId(),
                 bankEntity.getUser().getFullName(),
-                bankEntity.getUser().getProfileImage()
+                bankEntity.getUser().getProfileImage(),
+                bankEntity.getUser().getRole(),
+                bankEntity.getUser().isDeleted()
         );
 
         // Build a response payload map including BankEntity and UserDTO

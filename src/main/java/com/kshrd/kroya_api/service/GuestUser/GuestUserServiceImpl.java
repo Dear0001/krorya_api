@@ -599,7 +599,11 @@ public class GuestUserServiceImpl implements GuestUserService {
                     // Map user information to UserDTO if present
                     if (foodRecipe.getUser() != null) {
                         UserEntity user = foodRecipe.getUser();
-                        UserDTO userDTO = new UserDTO(user.getId(), user.getFullName(), user.getProfileImage());
+                        UserDTO userDTO = new UserDTO(user.getId(),
+                                user.getFullName(),
+                                user.getProfileImage(),
+                                user.getRole(),
+                                user.isDeleted());
                         response.setUser(userDTO);
                     }
 
@@ -759,7 +763,10 @@ public class GuestUserServiceImpl implements GuestUserService {
                     FoodRecipeCardResponse response = modelMapper.map(recipe, FoodRecipeCardResponse.class);
 
                     // Map user info to UserDTO
-                    UserDTO userDTO = new UserDTO(recipe.getUser().getId(), recipe.getUser().getFullName(), recipe.getUser().getProfileImage());
+                    UserDTO userDTO = new UserDTO(recipe.getUser().getId(), recipe.getUser().getFullName(),
+                            recipe.getUser().getProfileImage(),
+                            recipe.getUser().getRole()
+                            , recipe.getUser().isDeleted());
                     response.setUser(userDTO);
 
                     // Map photos from FoodRecipeEntity to structured list

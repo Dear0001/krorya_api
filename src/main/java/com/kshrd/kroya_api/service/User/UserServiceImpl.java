@@ -2,20 +2,16 @@ package com.kshrd.kroya_api.service.User;
 
 import com.kshrd.kroya_api.dto.PhotoDTO;
 import com.kshrd.kroya_api.dto.UserDTO;
-import com.kshrd.kroya_api.dto.UserEntityDTO;
 import com.kshrd.kroya_api.dto.UserProfileDTO;
 import com.kshrd.kroya_api.entity.*;
 import com.kshrd.kroya_api.entity.token.TokenRepository;
 import com.kshrd.kroya_api.exception.DuplicateFieldExceptionHandler;
 import com.kshrd.kroya_api.exception.NotFoundExceptionHandler;
-import com.kshrd.kroya_api.exception.constand.FieldBlankExceptionHandler;
 import com.kshrd.kroya_api.exception.exceptionValidateInput.Validation;
 import com.kshrd.kroya_api.payload.Auth.UserProfileUpdateRequest;
 import com.kshrd.kroya_api.payload.BaseResponse;
-import com.kshrd.kroya_api.payload.Credential.CredentialResponse;
 import com.kshrd.kroya_api.payload.FoodRecipe.FoodRecipeCardResponse;
 import com.kshrd.kroya_api.payload.FoodSell.FoodSellCardResponse;
-import com.kshrd.kroya_api.payload.User.UserResponse;
 import com.kshrd.kroya_api.repository.Address.AddressRepository;
 import com.kshrd.kroya_api.repository.Credencials.CredentialRepository;
 import com.kshrd.kroya_api.repository.DeviceToken.DeviceTokenRepository;
@@ -23,11 +19,12 @@ import com.kshrd.kroya_api.repository.Favorite.FavoriteRepository;
 import com.kshrd.kroya_api.repository.FoodRecipe.FoodRecipeRepository;
 import com.kshrd.kroya_api.repository.FoodSell.FoodSellRepository;
 import com.kshrd.kroya_api.repository.User.UserRepository;
-import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -589,4 +586,32 @@ public class UserServiceImpl implements UserService {
                 .payload(auth)
                 .build();
     }
+
+    public BaseResponse<?> getAllUsers() {
+        List<UserDTO> users = userRepository.findAll().stream()
+                .filter(user -> user.getRole().equals("ROLE_USER"))
+                .map(user -> modelMapper.map(user, UserDTO.class))
+                .collect(Collectors.toList());
+        return BaseResponse.builder()
+                .message("Users retrieved successfully")
+                .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .payload(users)
+                .build();
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public BaseResponse<?> deleteUserById(Integer userId) {
+        Optional<UserEntity> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new NotFoundExceptionHandler("User not found!");
+        }
+        userRepository.deleteById(userId);
+        return BaseResponse.builder()
+                .message("User deleted successfully")
+                .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .build();
+    }
+
 }
+

@@ -7,6 +7,7 @@ import com.kshrd.kroya_api.service.User.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -178,5 +179,38 @@ public class UserController {
     public BaseResponse<?> getUserInfo() {
         return userService.getUserInfo();
     }
+
+    @Operation(
+            summary = "👥 Retrieve All Users",
+            description = """
+                Fetches a list of all users.
+
+                **Response Summary**:
+                - **200**: ✅ Users retrieved successfully.
+                - **401**: 🚫 Unauthorized access.
+                """
+    )
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/all")
+    public BaseResponse<?> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @Operation(
+        summary = "🗑️ Delete User by ID",
+        description = """
+                Deletes a user by their ID.
+
+                **Path Variable**: **userId** (Integer): ID of the user to be deleted.
+
+                **Response Summary**:
+                - **200**: ✅ User deleted successfully.
+                - **404**: 🚫 User not found.
+                """
+)
+@DeleteMapping("/deleteUserById/{userId}")
+public BaseResponse<?> deleteUserById(@PathVariable Integer userId) {
+    return userService.deleteUserById(userId);
+}
 }
 

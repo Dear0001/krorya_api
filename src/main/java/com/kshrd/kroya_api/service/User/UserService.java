@@ -24,4 +24,8 @@ public interface UserService {
     BaseResponse<?> insertDeviceToken(String deviceToken);
 
     BaseResponse<?> getUserInfo();
+
+    BaseResponse<?> getAllUsers();
+
+    BaseResponse<?> deleteUserById(Integer userId);
 }

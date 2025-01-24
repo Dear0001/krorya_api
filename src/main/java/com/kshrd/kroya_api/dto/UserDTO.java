@@ -13,4 +13,6 @@ public class UserDTO {
     private Integer id;
     private String fullName;
     private String profileImage;
+    private String role;
+    private boolean isDeleted;
 }

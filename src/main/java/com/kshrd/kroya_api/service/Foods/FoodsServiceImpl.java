@@ -613,7 +613,12 @@ public class FoodsServiceImpl implements FoodsService {
                     response.setPhoto(photoDTOs);
 
                     // Map user info to UserDTO
-                    UserDTO userDTO = new UserDTO(recipe.getUser().getId(), recipe.getUser().getFullName(), recipe.getUser().getProfileImage());
+                    UserDTO userDTO = new UserDTO(
+                            recipe.getUser().getId(),
+                            recipe.getUser().getFullName(),
+                            recipe.getUser().getProfileImage(),
+                            recipe.getUser().getRole(),
+                            recipe.getUser().isDeleted());
                     response.setUser(userDTO);
 
                     return response;
