@@ -149,17 +149,17 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
                 .build();
     }
 
+//get all food recipes by page and size
     @Override
-    public BaseResponse<?> getAllFoodRecipes() {
+    public BaseResponse<?> getAllFoodRecipes(Integer page, Integer size) {
 
         // Get the currently authenticated user
         UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("User authenticated: {}", currentUser.getEmail());
 
-        // Fetch all FoodRecipeEntity records from the database
-//        List<FoodRecipeEntity> foodRecipeEntities = foodRecipeRepository.findAll();
+        // Fetch all FoodRecipe entities
+        List<FoodRecipeEntity> foodRecipeEntities = foodRecipeRepository.findAll();
 
-        List<FoodRecipeEntity> foodRecipeEntities = foodRecipeRepository.findAllByOrderByIdDesc();
         // Fetch the user's favorite recipes
         List<FavoriteEntity> userFavorites = favoriteRepository.findByUserAndFoodRecipeIsNotNull(currentUser);
         List<Long> userFavoriteRecipeIds = userFavorites.stream()
@@ -188,7 +188,7 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
                 })
                 .toList();
 
-        // Return the response with the list of FoodRecipeCardResponse objects
+        // Return the response
         return BaseResponse.builder()
                 .message("All food recipes fetched successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))

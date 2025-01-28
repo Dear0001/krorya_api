@@ -21,8 +21,10 @@ import com.kshrd.kroya_api.repository.FoodSell.FoodSellRepository;
 import com.kshrd.kroya_api.repository.User.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -587,15 +589,23 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    public BaseResponse<?> getAllUsers() {
-        List<UserDTO> users = userRepository.findAll().stream()
+    @Override
+    public BaseResponse<?> getAllUsers(Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<UserEntity> userPage = userRepository.findAll(pageable);
+        List<UserDTO> users = userPage.getContent().stream()
                 .filter(user -> user.getRole().equals("ROLE_USER"))
                 .map(user -> modelMapper.map(user, UserDTO.class))
                 .collect(Collectors.toList());
+        Map<String, Object> response = new HashMap<>();
+        response.put("users", users);
+        response.put("currentPage", userPage.getNumber());
+        response.put("totalItems", userPage.getTotalElements());
+        response.put("totalPages", userPage.getTotalPages());
         return BaseResponse.builder()
                 .message("Users retrieved successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
-                .payload(users)
+                .payload(response)
                 .build();
     }
 

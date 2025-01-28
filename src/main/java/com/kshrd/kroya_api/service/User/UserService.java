@@ -25,7 +25,7 @@ public interface UserService {
 
     BaseResponse<?> getUserInfo();
 
-    BaseResponse<?> getAllUsers();
+    BaseResponse<?> getAllUsers(Integer page, Integer size);
 
     BaseResponse<?> deleteUserById(Integer userId);
 }

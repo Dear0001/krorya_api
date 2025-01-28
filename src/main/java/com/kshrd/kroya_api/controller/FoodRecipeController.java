@@ -44,8 +44,9 @@ public class FoodRecipeController {
                     """
     )
     @GetMapping("/list")
-    public BaseResponse<?> getAllFoodRecipe() {
-        return foodRecipeService.getAllFoodRecipes();
+    public BaseResponse<?> getAllFoodRecipe(@RequestParam (defaultValue = "0") int page,
+                                            @RequestParam (defaultValue = "10") int size) {
+        return foodRecipeService.getAllFoodRecipes( page,  size);
     }
 
     @Operation(

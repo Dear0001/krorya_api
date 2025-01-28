@@ -7,5 +7,5 @@ import org.springframework.stereotype.Service;
 @Service
 public interface CategoryService {
     BaseResponse<?> postCategory(CategoryRequest categoryRequest);
-    BaseResponse<?> getAllCategory();
+    BaseResponse<?> getAllCategory(Integer page, Integer size);
 }

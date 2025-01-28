@@ -44,8 +44,9 @@ public class CategoryController {
                     """
     )
     @GetMapping("/all")
-    public BaseResponse<?> getAllCategory() {
-        return categoryService.getAllCategory();
+    public BaseResponse<?> getAllCategory(@RequestParam(defaultValue = "0") int page,
+                                          @RequestParam(defaultValue = "10") int size) {
+        return categoryService.getAllCategory(page, size);
     }
 }
 

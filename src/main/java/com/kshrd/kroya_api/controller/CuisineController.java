@@ -45,8 +45,9 @@ public class CuisineController {
                     """
     )
     @GetMapping("/all")
-    public BaseResponse<?> getAllCuisine() {
-        return cuisineService.getAllCuisine();
+    public BaseResponse<?> getAllCuisine(@RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "10") int size) {
+        return cuisineService.getAllCuisine(page, size);
     }
 }
 

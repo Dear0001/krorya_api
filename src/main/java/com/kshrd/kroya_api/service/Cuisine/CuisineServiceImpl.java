@@ -57,21 +57,18 @@ public class CuisineServiceImpl implements CuisineService {
     }
 
     @Override
-    public BaseResponse<?> getAllCuisine() {
-
-        log.info("Fetching all cuisines...");
-        List<CuisineEntity> cuisines = cuisineRepository.findAllByOrderById();
-
-        if (cuisines.isEmpty()) {
-            log.warn("No cuisines found.");
-            throw new NotFoundExceptionHandler("No cuisines found");
+    public BaseResponse<?> getAllCuisine(Integer page, Integer size) {
+    //get all cuisine with pagination
+        List<CuisineEntity> cuisineEntities = cuisineRepository.findAll();
+        if (cuisineEntities.isEmpty()) {
+            log.warn("No cuisines found in the system");
+            throw new NotFoundExceptionHandler("No cuisines found in the system");
         }
-
-        log.info("Cuisines fetched successfully, count: {}", cuisines.size());
+        log.info("Retrieved {} cuisines from the database", cuisineEntities.size());
         return BaseResponse.builder()
-                .payload(cuisines)
-                .message("Cuisines fetched successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .payload(cuisineEntities)
+                .message("Cuisines retrieved successfully")
                 .build();
     }
 

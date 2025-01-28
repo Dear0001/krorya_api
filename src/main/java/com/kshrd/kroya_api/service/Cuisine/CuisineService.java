@@ -8,5 +8,5 @@ import org.springframework.stereotype.Service;
 public interface CuisineService {
     BaseResponse<?> postCuisine(CuisineRequest cuisineRequest);
 
-    BaseResponse<?> getAllCuisine();
+    BaseResponse<?> getAllCuisine(Integer page, Integer size);
 }

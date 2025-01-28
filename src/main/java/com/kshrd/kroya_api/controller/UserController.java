@@ -181,20 +181,25 @@ public class UserController {
     }
 
     @Operation(
-            summary = "👥 Retrieve All Users",
-            description = """
-                Fetches a list of all users.
+        summary = "👥 Retrieve All Users with Pagination",
+        description = """
+                Fetches a paginated list of all users.
+
+                **Request Parameters**:
+                - **page** (Integer): Page number (default is 0).
+                - **size** (Integer): Number of users per page (default is 10).
 
                 **Response Summary**:
                 - **200**: ✅ Users retrieved successfully.
                 - **401**: 🚫 Unauthorized access.
                 """
-    )
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @GetMapping("/all")
-    public BaseResponse<?> getAllUsers() {
-        return userService.getAllUsers();
-    }
+)
+@PreAuthorize("hasRole('ROLE_ADMIN')")
+@GetMapping("/all")
+public BaseResponse<?> getAllUsers(@RequestParam(defaultValue = "0") int page,
+                                   @RequestParam(defaultValue = "10") int size) {
+    return userService.getAllUsers(page, size);
+}
 
     @Operation(
         summary = "🗑️ Delete User by ID",

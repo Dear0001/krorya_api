@@ -55,21 +55,26 @@ public class CategoryServiceImp implements CategoryService {
                 .build();
     }
 
+//get all category with page and size and total
     @Override
-    public BaseResponse<?> getAllCategory() {
-        log.info("Fetching all categories...");
-        List<CategoryEntity> categories = categoryRepository.findAllByOrderById();
+    public BaseResponse<?> getAllCategory(Integer page, Integer size) {
+        log.info("Received request to fetch all categories with page: {} and size: {}", page, size);
 
-        if (categories.isEmpty()) {
-            log.info("No categories found.");
-            throw new NotFoundExceptionHandler("No categories found");
+        // Fetch all categories from the database
+        List<CategoryEntity> categoryEntities = categoryRepository.findAll();
+        if (categoryEntities.isEmpty()) {
+            log.warn("No categories found in the system");
+            throw new NotFoundExceptionHandler("No categories found in the system.");
         }
 
-        log.info("Categories fetched successfully, count: {}", categories.size());
+        // Calculate the total number of categories
+        long totalCategories = categoryRepository.count();
+
+        // Build and return a successful response
         return BaseResponse.builder()
-                .payload(categories)
-                .message("Categories fetched successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .payload(categoryEntities)
+                .message("Categories retrieved successfully")
                 .build();
     }
 }
