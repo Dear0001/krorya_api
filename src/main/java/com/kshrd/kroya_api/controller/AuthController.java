@@ -1,8 +1,6 @@
 package com.kshrd.kroya_api.controller;
 
-import com.kshrd.kroya_api.payload.Auth.LoginRequest;
-import com.kshrd.kroya_api.payload.Auth.PasswordRequest;
-import com.kshrd.kroya_api.payload.Auth.UserInfoRequest;
+import com.kshrd.kroya_api.payload.Auth.*;
 import com.kshrd.kroya_api.payload.BaseResponse;
 import com.kshrd.kroya_api.service.Auth.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -41,8 +39,8 @@ public class AuthController {
                    \s"""
     )
     @PostMapping("/refresh-token")
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        authenticationService.refreshToken(request, response);
+    public BaseResponse<RefreshTokenResponse> refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return authenticationService.refreshToken(refreshTokenRequest);
     }
 
 

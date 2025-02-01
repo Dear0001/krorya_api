@@ -497,6 +497,63 @@ public class AuthenticationService {
                 .build();
     }
 
+    public BaseResponse<RefreshTokenResponse> refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        final String refreshToken = refreshTokenRequest.getRefreshToken();
+        final String userEmail;
+
+        // Check if the refresh token is missing
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            log.warn("Missing refresh token in request body");
+            return BaseResponse.<RefreshTokenResponse>builder()
+                    .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
+                    .message("Missing refresh token in request body")
+                    .build();
+        }
+
+        log.debug("Refresh token: {}", refreshToken); // Debug level to show token
+
+        // Extract the user email from the refresh token
+        userEmail = jwtService.extractUsername(refreshToken);
+        log.debug("Extracted user email: {}", userEmail);
+
+        if (userEmail != null) {
+            // Find the user by email
+            var user = this.userRepository.findByEmail(userEmail);
+
+            if (user != null && jwtService.isTokenValid(refreshToken, user)) {
+                var accessToken = jwtService.generateToken(user);
+                log.info("Successfully generated new access token for user: {}", userEmail);
+
+                revokeAllUserTokens(user);
+                saveUserToken(user, accessToken);
+
+                var authResponse = RefreshTokenResponse.builder()
+                        .accessToken(accessToken)
+                        .refreshToken(refreshToken)
+                        .build();
+
+                // Return the new tokens in the response
+                return BaseResponse.<RefreshTokenResponse>builder()
+                        .statusCode(String.valueOf(HttpServletResponse.SC_OK))
+                        .message("New access token generated successfully")
+                        .payload(authResponse)
+                        .build();
+            } else {
+                log.warn("Invalid token or user not found for email: {}", userEmail);
+                return BaseResponse.<RefreshTokenResponse>builder()
+                        .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
+                        .message("Invalid token or user not found")
+                        .build();
+            }
+        } else {
+            log.error("Failed to extract user information from token");
+            return BaseResponse.<RefreshTokenResponse>builder()
+                    .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
+                    .message("Invalid token: No user information")
+                    .build();
+        }
+    }
+
 //    public BaseResponse<?> loginAsGuest() {
 //
 //        log.info("Processing login as guest");
