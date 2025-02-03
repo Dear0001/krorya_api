@@ -8,5 +8,4 @@ import java.util.Optional;
 
 @Repository
 public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
-    Optional<RecipeEntity> findByPurchase_Id(Long purchaseId);
 }

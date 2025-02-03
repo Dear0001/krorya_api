@@ -19,6 +19,8 @@ import com.kshrd.kroya_api.repository.Favorite.FavoriteRepository;
 import com.kshrd.kroya_api.repository.FoodRecipe.FoodRecipeRepository;
 import com.kshrd.kroya_api.repository.FoodSell.FoodSellRepository;
 import com.kshrd.kroya_api.repository.User.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -45,7 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl<HttpServletRequest> implements UserService {
 
     private final UserRepository userRepository;
     private final FoodRecipeRepository foodRecipeRepository;
@@ -619,6 +621,23 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(userId);
         return BaseResponse.builder()
                 .message("User deleted successfully")
+                .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .build();
+    }
+
+    @Override
+    public BaseResponse<?> logout(jakarta.servlet.http.HttpServletRequest request) {
+        // Invalidate the session if it exists
+        HttpSession session = ((jakarta.servlet.http.HttpServletRequest) request).getSession(false);
+        if (session != null) {
+            session.invalidate();
+        }
+
+        // Optionally, you can also invalidate the JWT token if you are using token-based authentication
+        // For example, you can add the token to a blacklist or update its status in the database
+
+        return BaseResponse.builder()
+                .message("User logged out successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
                 .build();
     }

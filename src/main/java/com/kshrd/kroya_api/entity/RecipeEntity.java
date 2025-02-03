@@ -33,8 +33,4 @@ public class RecipeEntity {
     @Column(name = "status")
     private String status;
 
-    @OneToOne
-    @JoinColumn(name = "purchase_id")
-    private PurchaseEntity purchase;
-
 }

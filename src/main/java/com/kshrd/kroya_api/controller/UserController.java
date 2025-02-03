@@ -5,6 +5,7 @@ import com.kshrd.kroya_api.payload.Auth.UserProfileUpdateRequest;
 import com.kshrd.kroya_api.payload.BaseResponse;
 import com.kshrd.kroya_api.service.User.UserService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -217,5 +218,20 @@ public BaseResponse<?> getAllUsers(@RequestParam(defaultValue = "0") int page,
 public BaseResponse<?> deleteUserById(@PathVariable Integer userId) {
     return userService.deleteUserById(userId);
 }
+
+    @Operation(
+            summary = "🚪 Logout User",
+            description = """
+            Logs out the currently authenticated user by invalidating their session or token.
+
+            **Response Summary**:
+            - **200**: ✅ User logged out successfully.
+            - **401**: 🚫 Unauthorized access.
+            """
+    )
+    @PostMapping("/logout")
+    public BaseResponse<?> logout(HttpServletRequest request) {
+        return userService.logout(request);
+    }
 }
 

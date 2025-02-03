@@ -75,16 +75,6 @@ public class UserEntity implements UserDetails {
     @JsonIgnore
     private List<FoodRecipeEntity> product;
 
-    @OneToMany(mappedBy = "sender", cascade = CascadeType.ALL)
-    @JsonIgnore
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<NotificationEntity> notificationS;
-
-    @OneToMany(mappedBy = "receiver", cascade = CascadeType.ALL)
-    @JsonIgnore
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private List<NotificationEntity> notificationR;
-
     // Granting authorities for roles
     @Override
     @JsonIgnore
