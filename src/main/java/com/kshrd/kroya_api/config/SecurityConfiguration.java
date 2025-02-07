@@ -24,7 +24,6 @@ import org.springframework.security.web.authentication.logout.LogoutHandler;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableMethodSecurity(securedEnabled = true)
-//@EnableJpaAuditing(auditorAwareRef = "auditorAware")
 public class SecurityConfiguration {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -39,8 +38,6 @@ public class SecurityConfiguration {
                         .requestMatchers(
                                 "/api/v1/auth/**",
                                 "/api/v1/fileView/**",
-                                "api/v1/category/**",
-                                "/api/v1/cuisine/**",
                                 "/api/v1/guest-user/**",
                                 "/api/v1/guest-user/feedback/{foodId}",
                                 "/v2/api-docs",
@@ -53,8 +50,13 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-ui.html"
-                        )
-                        .permitAll()
+                        ).permitAll()
+
+                        // Cuisine & Category: Allow authenticated users to CREATE (POST) & GET
+                        .requestMatchers(HttpMethod.GET, "/api/v1/cuisine/**", "/api/v1/category/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/cuisine/**", "/api/v1/category/**").authenticated()
+
+                        // ADMIN-only routes
                         .requestMatchers(
                                 "/api/v1/address/**",
                                 "/api/v1/food-sell/**",
@@ -63,7 +65,9 @@ public class SecurityConfiguration {
                                 "/api/v1/user/**",
                                 "/api/v1/foods/**"
                         ).hasRole("ADMIN")
-                        .anyRequest().authenticated())
+
+                        .anyRequest().authenticated()
+                )
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling
                                 .accessDeniedHandler(this::accessDeniedHandler)
@@ -80,6 +84,7 @@ public class SecurityConfiguration {
 
         return http.build();
     }
+
 
     private void accessDeniedHandler(HttpServletRequest request, HttpServletResponse response, AccessDeniedException e) {
         jwtService.jwtExceptionHandler(response, ResponseMessage.FORBIDDEN);

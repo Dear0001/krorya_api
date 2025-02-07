@@ -32,20 +32,20 @@ public class CategoryController {
     public BaseResponse<?> postCategory(@RequestBody CategoryRequest categoryRequest) {
         return categoryService.postCategory(categoryRequest);
     }
-
     @Operation(
-            summary = "📂 Get All Categories",
+            summary = "📂 Get All Categories with Pagination",
             description = """
-                    Fetches a list of all available categories in the system.
-                    
-                    **📩 Response Summary**:
-                    - **200**: ✅ List of categories retrieved successfully.
-                    - **404**: 🚫 No categories found in the system.
-                    """
-    )
+                Fetches a list of all available categories in the system with pagination.
+                
+                **📩 Response Summary**:
+                - **200**: ✅ List of categories retrieved successfully with pagination.
+                - **404**: 🚫 No categories found in the system.
+                """
+        )
     @GetMapping("/all")
-    public BaseResponse<?> getAllCategory(@RequestParam(defaultValue = "0") int page,
-                                          @RequestParam(defaultValue = "10") int size) {
+    public BaseResponse<?> getAllCategory(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
         return categoryService.getAllCategory(page, size);
     }
 }

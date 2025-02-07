@@ -1,12 +1,14 @@
 package com.kshrd.kroya_api.service.FoodRecipe;
 
-import com.kshrd.kroya_api.dto.UserProfileDTO;
 import com.kshrd.kroya_api.entity.*;
 import com.kshrd.kroya_api.exception.NotFoundExceptionHandler;
 import com.kshrd.kroya_api.payload.BaseResponse;
+import com.kshrd.kroya_api.payload.Category.PaginationMeta;
 import com.kshrd.kroya_api.payload.FoodRecipe.*;
 import com.kshrd.kroya_api.dto.PhotoDTO;
-import com.kshrd.kroya_api.payload.FoodSell.FoodSellCardResponse;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import com.kshrd.kroya_api.repository.Category.CategoryRepository;
 import com.kshrd.kroya_api.repository.Cuisine.CuisineRepository;
 import com.kshrd.kroya_api.repository.Favorite.FavoriteRepository;
@@ -149,7 +151,6 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
                 .build();
     }
 
-//get all food recipes by page and size
     @Override
     public BaseResponse<?> getAllFoodRecipes(Integer page, Integer size) {
 
@@ -157,8 +158,11 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
         UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("User authenticated: {}", currentUser.getEmail());
 
-        // Fetch all FoodRecipe entities
-        List<FoodRecipeEntity> foodRecipeEntities = foodRecipeRepository.findAll();
+        // Create a Pageable object for pagination
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Fetch FoodRecipe entities with pagination
+        Page<FoodRecipeEntity> foodRecipePage = foodRecipeRepository.findAll(pageable);
 
         // Fetch the user's favorite recipes
         List<FavoriteEntity> userFavorites = favoriteRepository.findByUserAndFoodRecipeIsNotNull(currentUser);
@@ -167,7 +171,7 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
                 .toList();
 
         // Filter out FoodRecipeEntities that have a related FoodSellEntity
-        List<FoodRecipeCardResponse> foodRecipeResponses = foodRecipeEntities.stream()
+        List<FoodRecipeCardResponse> foodRecipeResponses = foodRecipePage.getContent().stream()
                 .filter(foodRecipeEntity -> !foodSellRepository.existsByFoodRecipe(foodRecipeEntity))
                 .map(foodRecipeEntity -> {
                     // Map to FoodRecipeCardResponse using ModelMapper
@@ -188,11 +192,26 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
                 })
                 .toList();
 
-        // Return the response
+        // Prepare pagination details
+        long totalFoodRecipes = foodRecipePage.getTotalElements();
+        int totalPages = foodRecipePage.getTotalPages();
+        int currentPage = foodRecipePage.getNumber();
+
+        // Construct the "next" and "previous" links
+        String nextLink = (currentPage + 1 < totalPages) ?
+                String.format("/api/v1/food-recipes/all?page=%d&size=%d", currentPage + 1, size) : null;
+        String prevLink = (currentPage > 0) ?
+                String.format("/api/v1/food-recipes/all?page=%d&size=%d", currentPage - 1, size) : null;
+
+        // Create the PaginationMeta object
+        PaginationMeta paginationMeta = new PaginationMeta(totalFoodRecipes, totalPages, currentPage, size, nextLink, prevLink);
+
+        // Return the response with pagination metadata
         return BaseResponse.builder()
                 .message("All food recipes fetched successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
                 .payload(foodRecipeResponses)
+                .paginationMeta(paginationMeta)
                 .build();
     }
 

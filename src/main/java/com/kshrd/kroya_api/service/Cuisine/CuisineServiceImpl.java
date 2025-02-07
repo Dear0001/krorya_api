@@ -5,6 +5,7 @@ import com.kshrd.kroya_api.exception.DuplicateFieldExceptionHandler;
 import com.kshrd.kroya_api.exception.InvalidValueExceptionHandler;
 import com.kshrd.kroya_api.exception.NotFoundExceptionHandler;
 import com.kshrd.kroya_api.payload.BaseResponse;
+import com.kshrd.kroya_api.payload.Category.PaginationMeta;
 import com.kshrd.kroya_api.payload.Cuisine.CuisineRequest;
 import com.kshrd.kroya_api.repository.Cuisine.CuisineRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,18 +62,42 @@ public class CuisineServiceImpl implements CuisineService {
 
     @Override
     public BaseResponse<?> getAllCuisine(Integer page, Integer size) {
-    //get all cuisine with pagination
-        List<CuisineEntity> cuisineEntities = cuisineRepository.findAll();
-        if (cuisineEntities.isEmpty()) {
+        log.info("Received request to fetch all cuisines with page: {} and size: {}", page, size);
+
+        // Create a Pageable object for pagination
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Fetch cuisines from the database with pagination
+        Page<CuisineEntity> cuisinePage = cuisineRepository.findAll(pageable);
+
+        // Check if any cuisines are found
+        if (cuisinePage.isEmpty()) {
             log.warn("No cuisines found in the system");
-            throw new NotFoundExceptionHandler("No cuisines found in the system");
+            throw new NotFoundExceptionHandler("No cuisines found in the system.");
         }
-        log.info("Retrieved {} cuisines from the database", cuisineEntities.size());
+
+        // Prepare pagination details
+        long totalCuisines = cuisinePage.getTotalElements();
+        int totalPages = cuisinePage.getTotalPages();
+        int currentPage = cuisinePage.getNumber();
+
+        // Construct the "next" and "previous" links
+        String nextLink = (currentPage + 1 < totalPages) ?
+                String.format("/api/v1/cuisine/all?page=%d&size=%d", currentPage + 1, size) : null;
+        String prevLink = (currentPage > 0) ?
+                String.format("/api/v1/cuisine/all?page=%d&size=%d", currentPage - 1, size) : null;
+
+        // Create the PaginationMeta object
+        PaginationMeta paginationMeta = new PaginationMeta(totalCuisines, totalPages, currentPage, size, nextLink, prevLink);
+
+        // Build and return the response with pagination metadata
         return BaseResponse.builder()
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
-                .payload(cuisineEntities)
+                .payload(cuisinePage.getContent())  // List of cuisines in the current page
+                .paginationMeta(paginationMeta)  // Set pagination details
                 .message("Cuisines retrieved successfully")
                 .build();
     }
+
 
 }

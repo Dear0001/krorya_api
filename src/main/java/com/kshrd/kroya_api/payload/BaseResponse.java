@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.kshrd.kroya_api.enums.IResponseMessage;
 import com.kshrd.kroya_api.enums.ResponseMessage;
+import com.kshrd.kroya_api.payload.Category.PaginationMeta;
 import lombok.Builder;
 import lombok.Data;
 
@@ -12,7 +13,8 @@ import java.util.Date;
 @Builder
 @Data
 public class BaseResponse<T> {
-
+//    @JsonIgnore
+    private PaginationMeta paginationMeta;
     private String message;
 
     @Builder.Default
