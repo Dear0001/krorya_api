@@ -20,6 +20,7 @@ public class FoodRecipeCardResponse {
     private String name;
     private String description;
     private String level;
+    private Integer durationInMinutes;
     private Double averageRating;
     private Integer totalRaters;
     private Boolean isFavorite;
