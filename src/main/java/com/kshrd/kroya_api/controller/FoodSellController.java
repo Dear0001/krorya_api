@@ -16,6 +16,7 @@ import java.util.Currency;
 @RequestMapping("api/v1/food-sell")
 @RequiredArgsConstructor
 @Slf4j
+@CrossOrigin(origins = "http://localhost:3000")
 public class FoodSellController {
 
     private final FoodSellService foodSellService;
