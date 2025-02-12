@@ -1,0 +1,7 @@
+services:
+   api:
+     build: .
+     restart: unless-stopped
+     container_name: krorya-api
+     ports: 
+       - "8080:8080"
