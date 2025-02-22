@@ -24,6 +24,7 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -62,7 +63,13 @@ public class JwtService {
 
     // Generate JWT token using UserEntity directly
     public String generateToken(UserEntity user) {
-        return generateToken(new HashMap<>(), user);
+        return Jwts.builder()
+                .setSubject(user.getEmail())
+                .claim("roles", user.getRole())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(SignatureAlgorithm.HS256, secretKey)
+                .compact();
     }
 
     // Generate JWT token with additional claims
@@ -70,10 +77,17 @@ public class JwtService {
         return buildToken(extraClaims, user, jwtExpiration);
     }
 
-    // Generate refresh token using UserEntity
     public String generateRefreshToken(UserEntity user) {
-        return buildToken(new HashMap<>(), user, refreshExpiration);
+        return Jwts.builder()
+                .setSubject(user.getEmail())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .setId(UUID.randomUUID().toString()) // Unique ID to ensure token rotation
+                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .compact();
     }
+
+
 
     // Helper method to build the token
     private String buildToken(Map<String, Object> extraClaims, UserEntity user, long expiration) {

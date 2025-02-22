@@ -14,11 +14,11 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="krorya_db@13.238.161.74" uuid="ad356745-c6b2-452a-a120-2c6b1766bde4">
+    <data-source source="LOCAL" name="krorya_db@54.165.15.120" uuid="fa299ae1-2716-40d8-8f47-342403f5b0f5">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://13.238.161.74:5432/krorya_db</jdbc-url>
+      <jdbc-url>jdbc:postgresql://54.165.15.120:5432/krorya_db</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />

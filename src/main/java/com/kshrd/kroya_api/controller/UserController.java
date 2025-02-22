@@ -15,11 +15,11 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/user")
 @AllArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app/"})
 public class UserController {
 
     private final UserService userService;
-
+    
     @Operation(
             summary = "🍽️ Retrieve Current User's Food Listings",
             description = """

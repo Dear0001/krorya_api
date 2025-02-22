@@ -12,7 +12,6 @@ import com.kshrd.kroya_api.payload.Auth.UserProfileUpdateRequest;
 import com.kshrd.kroya_api.payload.BaseResponse;
 import com.kshrd.kroya_api.payload.FoodRecipe.FoodRecipeCardResponse;
 import com.kshrd.kroya_api.payload.FoodSell.FoodSellCardResponse;
-import com.kshrd.kroya_api.repository.Address.AddressRepository;
 import com.kshrd.kroya_api.repository.Credencials.CredentialRepository;
 import com.kshrd.kroya_api.repository.DeviceToken.DeviceTokenRepository;
 import com.kshrd.kroya_api.repository.Favorite.FavoriteRepository;
@@ -54,7 +53,6 @@ public class UserServiceImpl<HttpServletRequest> implements UserService {
     private final FoodSellRepository foodSellRepository;
     private final TokenRepository tokenRepository;
     private final FavoriteRepository favoriteRepository;
-    private final AddressRepository addressRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final CredentialRepository credentialRepository;

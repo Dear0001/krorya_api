@@ -17,6 +17,7 @@ import com.kshrd.kroya_api.repository.FoodSell.FoodSellRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -158,8 +159,8 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
         UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("User authenticated: {}", currentUser.getEmail());
 
-        // Create a Pageable object for pagination
-        Pageable pageable = PageRequest.of(page, size);
+        // Create a Pageable object for pagination with sorting by ID in descending order
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
 
         // Fetch FoodRecipe entities with pagination
         Page<FoodRecipeEntity> foodRecipePage = foodRecipeRepository.findAll(pageable);
