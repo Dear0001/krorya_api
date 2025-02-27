@@ -468,14 +468,14 @@ public class FoodsServiceImpl implements FoodsService {
     }
 
     @Override
-    public BaseResponse<?> searchFoodsByName(String name) {
+    public BaseResponse<?> searchFoodsByName(String foodName) {
         // Get the currently authenticated user
         UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("User authenticated: {}", currentUser.getEmail());
 
         // Fetch all food recipes and food sells that match the name
-        List<FoodRecipeEntity> foodRecipes = foodRecipeRepository.findByNameContainingIgnoreCase(name);
-        List<FoodSellEntity> foodSells = foodSellRepository.findByFoodRecipeNameContainingIgnoreCase(name);
+        List<FoodRecipeEntity> foodRecipes = foodRecipeRepository.findByNameContainingIgnoreCase(foodName);
+        List<FoodSellEntity> foodSells = foodSellRepository.findByFoodRecipeNameContainingIgnoreCase(foodName);
 
         // Check if no records were found for the provided name
         if (foodRecipes.isEmpty() && foodSells.isEmpty()) {

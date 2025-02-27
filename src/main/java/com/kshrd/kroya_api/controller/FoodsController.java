@@ -94,8 +94,8 @@ public class FoodsController {
                     """
     )
     @GetMapping("/search")
-    public BaseResponse<?> searchFoodsByName(@RequestParam String name) {
-        return foodsService.searchFoodsByName(name);
+    public BaseResponse<?> searchFoodsByName(@RequestParam String foodName) {
+        return foodsService.searchFoodsByName(foodName);
     }
 
     @Operation(

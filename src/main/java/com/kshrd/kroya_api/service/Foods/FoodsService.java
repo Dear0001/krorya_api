@@ -12,7 +12,7 @@ public interface FoodsService {
 
     BaseResponse<?> deleteFood(Long id, ItemType itemType);
 
-    BaseResponse<?> searchFoodsByName(String name);
+    BaseResponse<?> searchFoodsByName(String foodName);
 
     BaseResponse<?> getAllFoods();
 }
