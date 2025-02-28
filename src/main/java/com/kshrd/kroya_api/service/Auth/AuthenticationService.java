@@ -32,10 +32,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Random;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -154,14 +151,27 @@ public class AuthenticationService {
     // Helper method to save the user's token to the database for later use
     private void saveUserToken(UserEntity user, String jwtToken) {
         log.debug("Saving token for user: {}", user.getEmail());
-        var token = Token.builder()
-                .user(user)
-                .token(jwtToken)
-                .tokenType(TokenType.BEARER)
-                .tokenExpired(false)
-                .tokenRevoked(false)
-                .build();
-        tokenRepository.save(token);
+
+        // Check if the token already exists
+        Optional<Token> existingToken = tokenRepository.findByToken(jwtToken);
+
+        if (existingToken.isPresent()) {
+            // Update the existing token
+            Token token = existingToken.get();
+            token.setTokenExpired(false);
+            token.setTokenRevoked(false);
+            tokenRepository.save(token);
+        } else {
+            // Insert a new token
+            var token = Token.builder()
+                    .user(user)
+                    .token(jwtToken)
+                    .tokenType(TokenType.BEARER)
+                    .tokenExpired(false)
+                    .tokenRevoked(false)
+                    .build();
+            tokenRepository.save(token);
+        }
     }
 
     // Helper method to revoke all tokens for a user (used when a user logs in)
@@ -180,22 +190,20 @@ public class AuthenticationService {
         log.info("All tokens revoked for user: {}", user.getEmail());
     }
 
-    public void refreshToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-        final String authHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
-        final String refreshToken;
+    public BaseResponse<RefreshTokenResponse> refreshToken(RefreshTokenRequest refreshTokenRequest) {
+        final String refreshToken = refreshTokenRequest.getRefreshToken();
         final String userEmail;
 
-        // Check if the Authorization header is missing or does not start with Bearer
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Missing or invalid Authorization header");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Missing or invalid Authorization header");
-            return;
+        // Check if the refresh token is missing
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            log.warn("Missing refresh token in request body");
+            return BaseResponse.<RefreshTokenResponse>builder()
+                    .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
+                    .message("Missing refresh token in request body")
+                    .build();
         }
 
-        refreshToken = authHeader.substring(7);
-        log.debug("Refresh token: {}", refreshToken); // Debug level to show token
+        log.debug("Refresh token: {}", refreshToken);
 
         // Extract the user email from the refresh token
         userEmail = jwtService.extractUsername(refreshToken);
@@ -205,29 +213,47 @@ public class AuthenticationService {
             // Find the user by email
             var user = this.userRepository.findByEmail(userEmail);
 
+            // Validate the refresh token and generate new tokens
             if (user != null && jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                log.info("Successfully generated new access token for user: {}", userEmail);
+                // Generate a new access token
+                var newAccessToken = jwtService.generateToken(user);
 
+                // Generate a new refresh token
+                var newRefreshToken = jwtService.generateRefreshToken(user);
+
+                log.info("Successfully generated new access and refresh tokens for user: {}", userEmail);
+
+                // Revoke all existing tokens for the user
                 revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
 
-                var authResponse = AuthenticationResponse.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
+                // Save the new access token to the database
+                saveUserToken(user, newAccessToken);
+
+                // Build the response with the new tokens
+                var authResponse = RefreshTokenResponse.builder()
+                        .accessToken(newAccessToken)
+                        .refreshToken(newRefreshToken)
                         .build();
 
                 // Return the new tokens in the response
-                new ObjectMapper().writeValue(response.getOutputStream(), authResponse);
+                return BaseResponse.<RefreshTokenResponse>builder()
+                        .statusCode(String.valueOf(HttpServletResponse.SC_OK))
+                        .message("New access and refresh tokens generated successfully")
+                        .payload(authResponse)
+                        .build();
             } else {
                 log.warn("Invalid token or user not found for email: {}", userEmail);
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Invalid token or user not found");
+                return BaseResponse.<RefreshTokenResponse>builder()
+                        .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
+                        .message("Invalid token or user not found")
+                        .build();
             }
         } else {
             log.error("Failed to extract user information from token");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Invalid token: No user information");
+            return BaseResponse.<RefreshTokenResponse>builder()
+                    .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
+                    .message("Invalid token: No user information")
+                    .build();
         }
     }
 
@@ -497,111 +523,4 @@ public class AuthenticationService {
                 .build();
     }
 
-    public BaseResponse<RefreshTokenResponse> refreshToken(RefreshTokenRequest refreshTokenRequest) {
-        final String refreshToken = refreshTokenRequest.getRefreshToken();
-        final String userEmail;
-
-        // Check if the refresh token is missing
-        if (refreshToken == null || refreshToken.isEmpty()) {
-            log.warn("Missing refresh token in request body");
-            return BaseResponse.<RefreshTokenResponse>builder()
-                    .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
-                    .message("Missing refresh token in request body")
-                    .build();
-        }
-
-        log.debug("Refresh token: {}", refreshToken); // Debug level to show token
-
-        // Extract the user email from the refresh token
-        userEmail = jwtService.extractUsername(refreshToken);
-        log.debug("Extracted user email: {}", userEmail);
-
-        if (userEmail != null) {
-            // Find the user by email
-            var user = this.userRepository.findByEmail(userEmail);
-
-            if (user != null && jwtService.isTokenValid(refreshToken, user)) {
-                var accessToken = jwtService.generateToken(user);
-                log.info("Successfully generated new access token for user: {}", userEmail);
-
-                revokeAllUserTokens(user);
-                saveUserToken(user, accessToken);
-
-                var authResponse = RefreshTokenResponse.builder()
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .build();
-
-                // Return the new tokens in the response
-                return BaseResponse.<RefreshTokenResponse>builder()
-                        .statusCode(String.valueOf(HttpServletResponse.SC_OK))
-                        .message("New access token generated successfully")
-                        .payload(authResponse)
-                        .build();
-            } else {
-                log.warn("Invalid token or user not found for email: {}", userEmail);
-                return BaseResponse.<RefreshTokenResponse>builder()
-                        .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
-                        .message("Invalid token or user not found")
-                        .build();
-            }
-        } else {
-            log.error("Failed to extract user information from token");
-            return BaseResponse.<RefreshTokenResponse>builder()
-                    .statusCode(String.valueOf(HttpServletResponse.SC_UNAUTHORIZED))
-                    .message("Invalid token: No user information")
-                    .build();
-        }
-    }
-
-//    public BaseResponse<?> loginAsGuest() {
-//
-//        log.info("Processing login as guest");
-//
-//        // Generate random email, full name, and password for the guest user
-//        String randomEmail = generateRandomEmail();
-//        String randomFullName = "Guest_" + UUID.randomUUID().toString().substring(0, 8);
-//        String randomPassword = generateRandomPassword(8);  // Generate an 8-character password
-//
-//        // Create a new guest user
-//        log.info("Creating new guest user with email: {}", randomEmail);
-//
-//        UserEntity guestUser = new UserEntity();
-//        guestUser.setEmail(randomEmail);
-//        guestUser.setFullName(randomFullName);
-//        guestUser.setPassword(passwordEncoder.encode(randomPassword));  // Encode the generated password
-//        guestUser.setRole("ROLE_GUEST");  // Assign the guest role
-//        guestUser.setCreatedAt(LocalDateTime.now());
-//
-//        // Save the new guest user to the database
-//        userRepository.save(guestUser);
-//
-//        log.info("Guest user created successfully with email: {}", randomEmail);
-//
-//        // Step 3: Authenticate the guest user using the generated credentials
-//        AuthenticationRequest authenticationRequest = new AuthenticationRequest();
-//        authenticationRequest.setEmail(randomEmail);
-//        authenticationRequest.setPassword(randomPassword);  // Use the generated password
-//
-//        // Step 4: Call the authenticate method to generate the tokens
-//        return authenticate(authenticationRequest);
-//    }
-//
-//    // Helper method to generate a random email
-//    private String generateRandomEmail() {
-//        String uuid = UUID.randomUUID().toString().substring(0, 8);  // Generate random UUID and shorten it
-//        return "guest_" + uuid + "@kroya.com";
-//    }
-//
-//    // Helper method to generate a random password with specified length
-//    private String generateRandomPassword(int length) {
-//        SecureRandom random = new SecureRandom();
-//        StringBuilder password = new StringBuilder(length);
-//        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-//
-//        for (int i = 0; i < length; i++) {
-//            password.append(characters.charAt(random.nextInt(characters.length())));
-//        }
-//        return password.toString();
-//    }
 }

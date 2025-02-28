@@ -12,20 +12,16 @@ import java.util.Date;
 
 @Builder
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class BaseResponse<T> {
-//    @JsonIgnore
     private PaginationMeta paginationMeta;
     private String message;
 
     @Builder.Default
     private Object payload = "No data available";
 
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String inqCnt;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Object inqRec;
-
     private String statusCode;
 
     @Builder.Default

@@ -72,22 +72,15 @@ public class JwtService {
                 .compact();
     }
 
-    // Generate JWT token with additional claims
-    public String generateToken(Map<String, Object> extraClaims, UserEntity user) {
-        return buildToken(extraClaims, user, jwtExpiration);
-    }
-
     public String generateRefreshToken(UserEntity user) {
         return Jwts.builder()
                 .setSubject(user.getEmail())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .setId(UUID.randomUUID().toString()) // Unique ID to ensure token rotation
+                .setId(UUID.randomUUID().toString()) // Ensure uniqueness
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
-
-
 
     // Helper method to build the token
     private String buildToken(Map<String, Object> extraClaims, UserEntity user, long expiration) {
