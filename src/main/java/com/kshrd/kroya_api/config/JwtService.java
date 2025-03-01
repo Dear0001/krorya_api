@@ -68,6 +68,7 @@ public class JwtService {
                 .claim("roles", user.getRole())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .setId(UUID.randomUUID().toString()) // Ensure uniqueness
                 .signWith(SignatureAlgorithm.HS256, secretKey)
                 .compact();
     }
@@ -132,20 +133,20 @@ public class JwtService {
     }
 
     // Extract username and handle JWT exceptions
-    public String extractUsername(HttpServletResponse response, String jwt) {
-        try {
-            return extractUsername(jwt);
-        } catch (SignatureException e) {
-            jwtExceptionHandler(response, ResponseMessage.INVALID_TOKEN_SIGNATURE);
-        } catch (MalformedJwtException | IllegalArgumentException e) {
-            jwtExceptionHandler(response, ResponseMessage.INVALID_TOKEN);
-        } catch (ExpiredJwtException e) {
-            jwtExceptionHandler(response, ResponseMessage.TOKEN_EXPIRED);
-        } catch (UnsupportedJwtException e) {
-            jwtExceptionHandler(response, ResponseMessage.UNSUPPORTED_TOKEN);
-        }
-        return null;
-    }
+//    public String extractUsername(HttpServletResponse response, String jwt) {
+//        try {
+//            return extractUsername(jwt);
+//        } catch (SignatureException e) {
+//            jwtExceptionHandler(response, ResponseMessage.INVALID_TOKEN_SIGNATURE);
+//        } catch (MalformedJwtException | IllegalArgumentException e) {
+//            jwtExceptionHandler(response, ResponseMessage.INVALID_TOKEN);
+//        } catch (ExpiredJwtException e) {
+//            jwtExceptionHandler(response, ResponseMessage.TOKEN_EXPIRED);
+//        } catch (UnsupportedJwtException e) {
+//            jwtExceptionHandler(response, ResponseMessage.UNSUPPORTED_TOKEN);
+//        }
+//        return null;
+//    }
 
     // Handle JWT exceptions and return custom responses
     public void jwtExceptionHandler(HttpServletResponse response, IResponseMessage msg) {

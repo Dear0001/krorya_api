@@ -23,7 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final TokenRepository tokenRepository;
-    private final UserRepository userRepository; // Assuming you have UserRepository to fetch UserEntity
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(
@@ -43,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        email = jwtService.extractUsername(response, jwt);
+        email = jwtService.extractUsername(jwt);
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // Fetch the user entity directly without Optional
