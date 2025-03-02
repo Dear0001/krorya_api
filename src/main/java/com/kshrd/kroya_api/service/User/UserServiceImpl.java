@@ -12,6 +12,7 @@ import com.kshrd.kroya_api.payload.Auth.UserProfileUpdateRequest;
 import com.kshrd.kroya_api.payload.BaseResponse;
 import com.kshrd.kroya_api.payload.FoodRecipe.FoodRecipeCardResponse;
 import com.kshrd.kroya_api.payload.FoodSell.FoodSellCardResponse;
+import com.kshrd.kroya_api.payload.User.UserRequest;
 import com.kshrd.kroya_api.repository.Credencials.CredentialRepository;
 import com.kshrd.kroya_api.repository.DeviceToken.DeviceTokenRepository;
 import com.kshrd.kroya_api.repository.Favorite.FavoriteRepository;
@@ -611,14 +612,18 @@ public class UserServiceImpl<HttpServletRequest> implements UserService {
 
     @Override
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public BaseResponse<?> deleteUserById(Integer userId) {
+    public BaseResponse<?> updateUserById(Integer userId, UserRequest userRequest) {
         Optional<UserEntity> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
             throw new NotFoundExceptionHandler("User not found!");
         }
-        userRepository.deleteById(userId);
+
+        UserEntity user = userOptional.get();
+        user.setDeleted(userRequest.isDeleted()); // Update the deletion status
+        userRepository.save(user);
+
         return BaseResponse.builder()
-                .message("User deleted successfully")
+                .message("User updated successfully")
                 .statusCode(String.valueOf(HttpStatus.OK.value()))
                 .build();
     }

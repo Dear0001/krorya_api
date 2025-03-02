@@ -3,6 +3,7 @@ package com.kshrd.kroya_api.service.User;
 import com.kshrd.kroya_api.entity.CredentialEntity;
 import com.kshrd.kroya_api.payload.Auth.UserProfileUpdateRequest;
 import com.kshrd.kroya_api.payload.BaseResponse;
+import com.kshrd.kroya_api.payload.User.UserRequest;
 import jakarta.servlet.http.HttpServletRequest;
 
 public interface UserService {
@@ -28,7 +29,7 @@ public interface UserService {
 
     BaseResponse<?> getAllUsers(Integer page, Integer size);
 
-    BaseResponse<?> deleteUserById(Integer userId);
+    BaseResponse<?> updateUserById(Integer userId, UserRequest userRequest);
 
     BaseResponse<?> logout(HttpServletRequest request);
 }

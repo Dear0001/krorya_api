@@ -3,6 +3,7 @@ package com.kshrd.kroya_api.controller;
 import com.kshrd.kroya_api.entity.CredentialEntity;
 import com.kshrd.kroya_api.payload.Auth.UserProfileUpdateRequest;
 import com.kshrd.kroya_api.payload.BaseResponse;
+import com.kshrd.kroya_api.payload.User.UserRequest;
 import com.kshrd.kroya_api.service.User.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.servlet.http.HttpServletRequest;
@@ -215,9 +216,9 @@ public BaseResponse<?> getAllUsers(@RequestParam(defaultValue = "0") int page,
                 - **404**: 🚫 User not found.
                 """
 )
-@DeleteMapping("/deleteUserById/{userId}")
-public BaseResponse<?> deleteUserById(@PathVariable Integer userId) {
-    return userService.deleteUserById(userId);
+@PutMapping("/deleteUserById/{userId}")
+public BaseResponse<?> updateUserById(@PathVariable Integer userId, @RequestBody UserRequest userRequest) {
+    return userService.updateUserById(userId, userRequest);
 }
 
     @Operation(
