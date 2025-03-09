@@ -39,6 +39,9 @@ public class SecurityConfiguration {
                                 "/api/v1/auth/**",
                                 "/api/v1/fileView/**",
                                 "/api/v1/guest-user/**",
+                                "/api/v1/favorite/**",
+                                "/api/v1/address/**",
+                                "/api/v1/user/**",
                                 "/api/v1/guest-user/feedback/{foodId}",
                                 "/v2/api-docs",
                                 "/v3/api-docs",
@@ -58,12 +61,12 @@ public class SecurityConfiguration {
 
                         // ADMIN-only routes
                         .requestMatchers(
-                                "/api/v1/address/**",
                                 "/api/v1/food-sell/**",
-                                "/api/v1/food-recipe/**",
-                                "/api/v1/favorite/**",
-                                "/api/v1/user/**",
-                                "/api/v1/foods/**"
+                                "/api/v1/food-recipe/post-food-recipe",
+                                "/api/v1/food-recipe/edit-food-recipe/**",
+                                "/api/v1/user/all",
+                                "/api/v1/foods/**",
+                                "/api/v1/category/**"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()

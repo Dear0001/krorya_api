@@ -88,6 +88,12 @@ public class AuthenticationService {
             throw new NotFoundExceptionHandler("User not found");
         }
 
+        // Check if the user is deleted (banned)
+        if (userEntity.isDeleted()) {
+            log.warn("User is banned and cannot log in: {}", loginRequest.getEmail());
+            throw new NotFoundExceptionHandler("You have been banned");
+        }
+
         if (!passwordEncoder.matches(loginRequest.getPassword(), userEntity.getPassword())) {
             log.warn("Incorrect password for email: {}", loginRequest.getEmail());
             throw new CustomExceptionSecurity(ResponseMessage.INCORRECT_PASSWORD);
