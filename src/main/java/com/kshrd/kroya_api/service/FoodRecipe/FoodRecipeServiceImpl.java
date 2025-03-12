@@ -443,4 +443,44 @@ public class FoodRecipeServiceImpl implements FoodRecipeService {
                 .build();
     }
 
+    @Override
+    public BaseResponse<?> deleteFoodRecipe(Long recipeId) {
+        // Get the currently authenticated user
+        UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info("User authenticated: {}", currentUser.getEmail());
+
+        // Fetch the existing recipe by ID
+        Optional<FoodRecipeEntity> recipeOptional = foodRecipeRepository.findById(Math.toIntExact(recipeId));
+        if (recipeOptional.isEmpty()) {
+            log.error("Recipe with ID {} not found", recipeId);
+            return BaseResponse.builder()
+                    .message("Recipe not found")
+                    .statusCode(String.valueOf(HttpStatus.NOT_FOUND.value()))
+                    .build();
+        }
+
+        FoodRecipeEntity existingRecipe = recipeOptional.get();
+
+        // Check if the current user is the owner of the recipe
+        if (!existingRecipe.getUser().getId().equals(currentUser.getId())) {
+            log.error("User {} is not authorized to delete this recipe", currentUser.getEmail());
+            return BaseResponse.builder()
+                    .message("You are not authorized to delete this recipe")
+                    .statusCode(String.valueOf(HttpStatus.FORBIDDEN.value()))
+                    .build();
+        }
+
+        // Delete the recipe
+        foodRecipeRepository.delete(existingRecipe);
+
+        // Log the deleted recipe's ID
+        log.info("Recipe deleted successfully with ID: {}", existingRecipe.getId());
+
+        // Return a success response
+        return BaseResponse.builder()
+                .message("Recipe deleted successfully")
+                .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .build();
+    }
+
 }

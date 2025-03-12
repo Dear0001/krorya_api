@@ -64,6 +64,7 @@ public class SecurityConfiguration {
                                 "/api/v1/food-sell/**",
                                 "/api/v1/food-recipe/post-food-recipe",
                                 "/api/v1/food-recipe/edit-food-recipe/**",
+                                "/api/v1/food-recipe/delete/**",
                                 "/api/v1/user/all",
                                 "/api/v1/foods/**",
                                 "/api/v1/category/**"

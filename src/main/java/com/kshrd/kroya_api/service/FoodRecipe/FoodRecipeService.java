@@ -13,4 +13,6 @@ public interface FoodRecipeService {
     BaseResponse<?> getFoodRecipeByCuisineID(Long cuisineId);
 
     BaseResponse<?> searchFoodsByName(String name);
+
+    BaseResponse<?> deleteFoodRecipe(Long recipeId);
 }

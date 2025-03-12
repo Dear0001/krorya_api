@@ -102,5 +102,22 @@ public class FoodRecipeController {
         return foodRecipeService.searchFoodsByName(name);
     }
 
+//    Delete Food Recipe
+    @Operation(
+            summary = "🗑️ Delete Food Recipe",
+            description = """
+                    Deletes a food recipe from the system.
+                    - **Path Variable**: **recipeId**: ID of the food recipe to delete.
+                    
+                    **📩 Response Summary**:
+                    - **200**: ✅ Food recipe deleted successfully.
+                    - **404**: 🚫 Food recipe not found.
+                    """
+    )
+    @DeleteMapping("/delete/{recipeId}")
+    public BaseResponse<?> deleteFoodRecipe(@PathVariable Long recipeId) {
+        return foodRecipeService.deleteFoodRecipe(recipeId);
+    }
+
 }
 
