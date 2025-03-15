@@ -12,7 +12,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/dashboard")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord-git-newdeploy-dear0001s-projects.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://kroryadashbaord.vercel.app"})
 public class DashboardController {
     private final DashboardService dashboardService;
 
