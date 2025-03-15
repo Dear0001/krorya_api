@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/feedback")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://kroryadashbaord.vercel.app"})
 public class FeedbackController {
 
     private final FeedbackService feedbackService;

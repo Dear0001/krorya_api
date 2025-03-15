@@ -6,7 +6,6 @@ TRUNCATE TABLE
     file_tb,
     reciept_tb,
     address_tb,
-    bank_tb,
     code_tb,
     credential_tb,
     device_token_tb,

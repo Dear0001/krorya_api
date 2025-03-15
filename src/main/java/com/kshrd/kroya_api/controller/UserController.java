@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/user")
 @AllArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://kroryadashbaord.vercel.app"})
 public class UserController {
 
     private final UserService userService;
