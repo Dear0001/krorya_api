@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/cuisine")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app/"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord-git-newdeploy-dear0001s-projects.vercel.app/"})
 public class CuisineController {
 
     private final CuisineService cuisineService;
