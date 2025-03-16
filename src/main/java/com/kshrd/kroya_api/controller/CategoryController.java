@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/v1/category")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:3000", "https://kroryadashbaord.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app"})
 public class CategoryController {
 
     private final CategoryService categoryService;

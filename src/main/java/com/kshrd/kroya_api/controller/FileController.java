@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/fileView")
-@CrossOrigin(origins = {"http://localhost:3000", "https://kroryadashbaord.vercel.app"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app"})
 public class FileController {
     private final FileService fileService;
 
