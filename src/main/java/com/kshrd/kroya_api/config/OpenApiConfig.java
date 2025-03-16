@@ -16,7 +16,6 @@ import io.swagger.v3.oas.annotations.servers.Server;
                         name = "Krorya API",
                         email = "dochkouern@gmail.com",
                         url = "https://kroryaapi-api.up.railway.app"
-//                        url = "https://krorya-api.onrender.com"
                 ),
                 description = "OpenAPI documentation for Krorya API",
                 title = "Krorya API - OpenAPI Specification",
