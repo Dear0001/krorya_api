@@ -6,7 +6,6 @@ import com.kshrd.kroya_api.service.File.FileService;
 import io.minio.errors.MinioException;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,12 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/fileView")
-@CrossOrigin(
-        origins = {
-                "http://localhost:3000",
-                "https://krorya-dashbaord.vercel.app"
-        }
-)
 public class FileController {
     private final FileService fileService;
 
@@ -44,38 +37,23 @@ public class FileController {
                     """
     )
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadFiles(@RequestParam("file") MultipartFile[] files) {
-        try {
-            if (files.length == 0) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("🚫 No files uploaded.");
-            }
-
-            List<String> fileUrls = new ArrayList<>();
-            for (MultipartFile file : files) {
-                if (file.isEmpty()) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("🚫 One or more files are empty.");
-                }
-
-                // ✅ Fix: Ensure fileService method name is correct
-                String fileName = fileService.Uplaodfile(file);
-                String url = ServletUriComponentsBuilder.fromCurrentRequestUri()
-                        .replacePath("/api/v1/fileView/" + fileName)
-                        .toUriString();
-
-                FileEntity fileEntity = new FileEntity(url, fileName);
-                fileService.InsertFile(fileEntity);
-                fileUrls.add(url);
-            }
-
-            return ResponseEntity.status(HttpStatus.CREATED).body(new FileResponse<>(
-                    "✅ Upload successful",
-                    201,
-                    fileUrls
-            ));
-        } catch (MinioException | IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Error uploading files: " + e.getMessage());
+    public ResponseEntity<?> uploadFiles(@RequestParam("files") List<MultipartFile> files) throws IOException, MinioException {
+        List<String> fileUrl = new ArrayList<>();
+        for (MultipartFile file : files) {
+            String fileName = fileService.Uplaodfile(file);
+            String url = ServletUriComponentsBuilder.fromCurrentRequestUri()
+                    .replacePath("/api/v1/fileView/" + fileName)
+                    .toUriString();
+            FileEntity fileEntity = new FileEntity(url, fileName);
+            fileService.InsertFile(fileEntity);
+            fileUrl.add(url);
         }
+        return ResponseEntity.ok().body(new FileResponse<>(
+                "Upload files successfully",
+                201,
+                fileUrl
+        ));
+//        return null;
     }
 
     @Operation(
@@ -90,20 +68,9 @@ public class FileController {
                     """
     )
     @GetMapping("/{fileName}")
-    public ResponseEntity<?> getFile(@PathVariable String fileName) throws MinioException {
-        try {
-            Resource file = fileService.getFile(fileName);
-            if (file == null) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body("🚫 File not found: " + fileName);
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                    .body(file);
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("❌ Error retrieving file: " + e.getMessage());
-        }
+    public ResponseEntity<Resource> getFile(@PathVariable String fileName) throws IOException, MinioException {
+        Resource file = fileService.getFile(fileName);
+        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(file);
+//        return null;
     }
 }
