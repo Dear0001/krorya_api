@@ -81,6 +81,7 @@ public class FileServiceImpl implements FileService {
                     GetObjectArgs.builder().bucket(bucketName).object(fileName).build()
             );
 
+
             return new ByteArrayResource(object.readAllBytes());
 
         } catch (MinioException | IOException e) {
