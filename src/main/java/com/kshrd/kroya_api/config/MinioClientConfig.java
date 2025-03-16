@@ -1,4 +1,4 @@
-package org.kshrd.springminioclient.configuration;
+package com.kshrd.kroya_api.config;
 
 import io.minio.MinioClient;
 import org.springframework.beans.factory.annotation.Value;
