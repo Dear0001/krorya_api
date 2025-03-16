@@ -57,7 +57,7 @@ public class FileServiceImpl implements FileService {
             );
 
             // Save file details to the database
-            String fileUrl = "http://localhost:9000/" + bucketName + "/" + fileName;
+            String fileUrl = "https://console-production-b82a.up.railway.app/" + bucketName + "/" + fileName;
             FileEntity fileEntity = new FileEntity(fileUrl, fileName);
             fileRepository.save(fileEntity);
 
