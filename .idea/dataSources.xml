@@ -14,11 +14,11 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="krorya_db@54.66.229.214" uuid="c9de26a8-159c-4752-855e-ff0c7936491f">
+    <data-source source="LOCAL" name="railway@maglev.proxy.rlwy.net" uuid="34f3a7e1-caa7-4edb-bb28-b8a4ea589533">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://54.66.229.214:5432/krorya_db</jdbc-url>
+      <jdbc-url>jdbc:postgresql://maglev.proxy.rlwy.net:15361/railway</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
@@ -26,11 +26,11 @@
       </jdbc-additional-properties>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
-    <data-source source="LOCAL" name="railway@maglev.proxy.rlwy.net" uuid="34f3a7e1-caa7-4edb-bb28-b8a4ea589533">
+    <data-source source="LOCAL" name="krorya_db_mian@dpg-cvb3ctdds78s73agmh10-a.oregon-postgres.render.com" uuid="d5c0ef34-934b-4040-81d4-f4d70cf06936">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://maglev.proxy.rlwy.net:15361/railway</jdbc-url>
+      <jdbc-url>jdbc:postgresql://dpg-cvb3ctdds78s73agmh10-a.oregon-postgres.render.com:5432/krorya_db_mian</jdbc-url>
       <jdbc-additional-properties>
         <property name="com.intellij.clouds.kubernetes.db.host.port" />
         <property name="com.intellij.clouds.kubernetes.db.enabled" value="false" />
