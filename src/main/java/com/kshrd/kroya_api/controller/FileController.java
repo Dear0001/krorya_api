@@ -4,7 +4,6 @@ import com.kshrd.kroya_api.payload.File.FileResponse;
 import com.kshrd.kroya_api.service.File.FileService;
 import io.minio.errors.MinioException;
 import io.swagger.v3.oas.annotations.Operation;
-import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,8 +41,8 @@ public class FileController {
 
     @Operation(summary = "📥 Download File by Name")
     @GetMapping("/{fileName}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileName) throws IOException, MinioException {
-        Resource file = fileService.getFile(fileName);
+    public ResponseEntity<String> getFile(@PathVariable String fileName) throws IOException, MinioException {
+        String file = fileService.getFile(fileName);
         return ResponseEntity.ok()
                 .contentType(MediaType.APPLICATION_OCTET_STREAM)
                 .body(file);
