@@ -6,8 +6,18 @@ FROM maven:3.8.7-eclipse-temurin-19 AS build
 # Set the working directory inside the container
 WORKDIR /app
 
+# Copy only pom.xml first to leverage Docker caching
+COPY pom.xml .
+
+# Download dependencies in advance
+RUN mvn dependency:go-offline
+
 # Copy current local directory to /app which current directory in container
 COPY . .
+
+
+# Build the application, skipping tests to speed up the process
+RUN mvn clean package -DskipTests
 
 # Clean the existing build and package the application to create JAR file
 RUN mvn clean package
