@@ -3,6 +3,7 @@ package com.kshrd.kroya_api.controller;
 import com.kshrd.kroya_api.entity.FileEntity;
 import com.kshrd.kroya_api.payload.File.FileResponse;
 import com.kshrd.kroya_api.service.File.FileService;
+import io.minio.errors.MinioException;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
@@ -37,24 +38,26 @@ public class FileController {
                     """
     )
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadFiles(@RequestParam("files") List<MultipartFile> files) throws IOException {
-        List<String> fileUrl = new ArrayList<>();
-        for (MultipartFile file : files) {
+    public ResponseEntity<?> uploadFiles(@RequestParam("file") MultipartFile[] files) throws MinioException, IOException {
+        List<String> fileUrls = new ArrayList<>();
+
+        for (MultipartFile file : files) {  // ✅ Now files is correctly defined
             String fileName = fileService.Uplaodfile(file);
             String url = ServletUriComponentsBuilder.fromCurrentRequestUri()
                     .replacePath("/api/v1/fileView/" + fileName)
                     .toUriString();
             FileEntity fileEntity = new FileEntity(url, fileName);
             fileService.InsertFile(fileEntity);
-            fileUrl.add(url);
+            fileUrls.add(url);
         }
+
         return ResponseEntity.ok().body(new FileResponse<>(
                 "Upload files successfully",
                 201,
-                fileUrl
+                fileUrls
         ));
-//        return null;
     }
+
 
     @Operation(
             summary = "📥 Download File by Name",
@@ -68,10 +71,21 @@ public class FileController {
                     """
     )
     @GetMapping("/{fileName}")
-    public ResponseEntity<Resource> getFile(@PathVariable String fileName) throws IOException {
-        Resource file = fileService.getFile(fileName);
-        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(file);
-//        return null;
+    public ResponseEntity<?> getFile(@PathVariable String fileName) throws MinioException {
+        try {
+            Resource file = fileService.getFile(fileName);
+
+            if (file == null) {
+                return ResponseEntity.status(404).body("🚫 File not found: " + fileName);
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(file);
+        } catch (IOException e) {
+            return ResponseEntity.status(500).body("❌ Error retrieving file: " + e.getMessage());
+        }
     }
+
 }
 
