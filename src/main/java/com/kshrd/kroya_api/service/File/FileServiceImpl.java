@@ -35,29 +35,29 @@ public class FileServiceImpl implements FileService {
         return fileRepository.save(fileEntity);
     }
 
- @Override
- public String Uplaodfile(MultipartFile file) throws IOException, MinioException {
-     String fileName = file.getOriginalFilename();
-     try (InputStream stream = file.getInputStream()) {
-         fileName = UUID.randomUUID() + "." + StringUtils.getFilenameExtension(fileName);
+    @Override
+    public String Uplaodfile(MultipartFile file) throws IOException, MinioException {
+        String fileName = file.getOriginalFilename();
+        try (InputStream stream = file.getInputStream()) {
+            fileName = UUID.randomUUID() + "." + StringUtils.getFilenameExtension(fileName);
 
-         if(!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())){
-             minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-         }
+            if(!minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build())){
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
 
-         //1. upload from any source and provide data as an InputStream
-         minioClient.putObject(PutObjectArgs.builder()
-                 .bucket(bucketName)
-                 .object(fileName)
-                 .stream(stream, stream.available(), -1)
-                 .build());
+            //1. upload from any source and provide data as an InputStream
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(fileName)
+                    .stream(stream, stream.available(), -1)
+                    .build());
 
-         stream.close();
-         return fileName;
-     } catch (MinioException | NoSuchAlgorithmException | InvalidKeyException e) {
-         throw new MinioException("Failed to upload file");
-     }
- }
+            stream.close();
+            return fileName;
+        } catch (MinioException | NoSuchAlgorithmException | InvalidKeyException e) {
+            throw new MinioException("Failed to upload file");
+        }
+    }
 
     @Override
     public String getFile(String fileName) {
