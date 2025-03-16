@@ -4,6 +4,7 @@ import com.kshrd.kroya_api.entity.FileEntity;
 import com.kshrd.kroya_api.repository.File.FileRepository;
 import io.minio.*;
 import io.minio.errors.MinioException;
+import io.minio.http.Method;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
@@ -56,12 +57,21 @@ public class FileServiceImpl implements FileService {
                             .build()
             );
 
+            // Generate a pre-signed URL for the uploaded file
+            String fileUrl = minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET) // HTTP method (GET, PUT, etc.)
+                            .bucket(bucketName)
+                            .object(fileName)
+                            .expiry(60 * 60 * 24) // URL expiry time in seconds (e.g., 1 day)
+                            .build()
+            );
+
             // Save file details to the database
-            String fileUrl = "https://console-production-b82a.up.railway.app/" + bucketName + "/" + fileName;
             FileEntity fileEntity = new FileEntity(fileUrl, fileName);
             fileRepository.save(fileEntity);
 
-            return fileName;
+            return fileUrl; // Return the pre-signed URL
         } catch (MinioException | InvalidKeyException | NoSuchAlgorithmException e) {
             throw new IOException("Error uploading file to MinIO: " + e.getMessage());
         }
