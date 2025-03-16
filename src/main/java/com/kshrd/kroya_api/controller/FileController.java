@@ -23,8 +23,7 @@ import java.util.List;
         origins = {
                 "http://localhost:3000",
                 "https://krorya-dashbaord.vercel.app"
-        },
-        allowedHeaders = "*", allowCredentials = "true"
+        }
 )
 public class FileController {
     private final FileService fileService;
@@ -45,7 +44,7 @@ public class FileController {
                     """
     )
     @PostMapping(value = "/file", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> uploadFiles(@RequestParam("file") MultipartFile[] files) throws MinioException, IOException{
+    public ResponseEntity<?> uploadFiles(@RequestParam("file") MultipartFile[] files) {
         try {
             if (files.length == 0) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("🚫 No files uploaded.");
@@ -102,7 +101,7 @@ public class FileController {
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .body(file);
-        } catch (IOException | MinioException e) {
+        } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("❌ Error retrieving file: " + e.getMessage());
         }
