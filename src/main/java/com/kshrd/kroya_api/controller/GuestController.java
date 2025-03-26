@@ -19,21 +19,12 @@ public class GuestController {
     private final GuestUserService guestUserService;
 
     @Operation(
-            summary = "🍲 Get All Food Sells",
-            description = "Fetches a list of all food sells available to guest users."
-    )
-    @GetMapping("/food-sell/list")
-    public BaseResponse<?> getAllFoodSells() {
-        return guestUserService.getAllFoodSells();
-    }
-
-    @Operation(
             summary = "📖 Get All Food Recipes",
             description = "Retrieves a list of all food recipes available to guest users."
     )
     @GetMapping("/food-recipe/list")
-    public BaseResponse<?> getAllFoodRecipe() {
-        return guestUserService.getAllFoodRecipes();
+    public BaseResponse<?> getAllFoodRecipe(Integer page, Integer size) {
+        return guestUserService.getAllFoodRecipes(page, size);
     }
 
     @Operation(
@@ -103,21 +94,21 @@ public class GuestController {
         return guestUserService.getFoodRecipeByCuisineID(cuisineId);
     }
 
-    @Operation(
-            summary = "🍽️ Get Food Sells by Cuisine ID",
-            description = """
-                    Retrieves food sells linked to a particular cuisine using the cuisine ID.
-                    - **Path Variable**: **cuisineId**: ID of the cuisine.
-
-                    **📩 Response Summary**:
-                    - **200**: ✅ List of food sells by cuisine ID retrieved successfully.
-                    - **404**: 🚫 No food sells found for the specified cuisine ID.
-                    """
-    )
-    @GetMapping("/food-sell/{cuisineId}")
-    public BaseResponse<?> getFoodSellByCuisineID(@PathVariable Long cuisineId) {
-        return guestUserService.getFoodSellByCuisineID(cuisineId);
-    }
+//    @Operation(
+//            summary = "🍽️ Get Food Sells by Cuisine ID",
+//            description = """
+//                    Retrieves food sells linked to a particular cuisine using the cuisine ID.
+//                    - **Path Variable**: **cuisineId**: ID of the cuisine.
+//
+//                    **📩 Response Summary**:
+//                    - **200**: ✅ List of food sells by cuisine ID retrieved successfully.
+//                    - **404**: 🚫 No food sells found for the specified cuisine ID.
+//                    """
+//    )
+//    @GetMapping("/food-sell/{cuisineId}")
+//    public BaseResponse<?> getFoodSellByCuisineID(@PathVariable Long cuisineId) {
+//        return guestUserService.getFoodSellByCuisineID(cuisineId);
+//    }
 
     @Operation(
             summary = "📜 Get All Food Names",
@@ -132,26 +123,27 @@ public class GuestController {
             summary = "📋 Get All Foods",
             description = "Fetches a comprehensive list of all foods available to guest users."
     )
+
     @GetMapping("/foods/list")
     public BaseResponse<?> getAllFoods() {
         return guestUserService.getAllFoods();
     }
 
-    @Operation(
-            summary = "🔍 Search Food Sells by Name",
-            description = """
-                    Searches for food sell entries containing the specified name.
-                    - **Query Parameter**: **name**: Part or full name of the food sell to search.
-
-                    **📩 Response Summary**:
-                    - **200**: ✅ Search results fetched successfully.
-                    - **404**: 🚫 No food sells found matching the specified name.
-                    """
-    )
-    @GetMapping("/food-sell/search")
-    public BaseResponse<?> searchFoodsSellByName(@RequestParam String name) {
-        return guestUserService.searchFoodsSellByName(name);
-    }
+//    @Operation(
+//            summary = "🔍 Search Food Sells by Name",
+//            description = """
+//                    Searches for food sell entries containing the specified name.
+//                    - **Query Parameter**: **name**: Part or full name of the food sell to search.
+//
+//                    **📩 Response Summary**:
+//                    - **200**: ✅ Search results fetched successfully.
+//                    - **404**: 🚫 No food sells found matching the specified name.
+//                    """
+//    )
+//    @GetMapping("/food-sell/search")
+//    public BaseResponse<?> searchFoodsSellByName(@RequestParam String name) {
+//        return guestUserService.searchFoodsSellByName(name);
+//    }
 
     @Operation(
             summary = "🔍 Search Food Recipes by Name",

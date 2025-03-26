@@ -16,7 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 public class FoodRecipeCardResponse {
     private Long id;
-    private List<PhotoDTO> photo; // List of PhotoEntity for each card
+    private List<PhotoDTO> photo;
     private String name;
     private String description;
     private String level;
@@ -25,5 +25,5 @@ public class FoodRecipeCardResponse {
     private Integer totalRaters;
     private Boolean isFavorite;
     private ItemType itemType = ItemType.FOOD_RECIPE;
-    private UserDTO user; // Add UserDTO field
+    private UserDTO user;
 }

@@ -5,9 +5,7 @@ import com.kshrd.kroya_api.payload.BaseResponse;
 
 public interface GuestUserService {
 
-    BaseResponse<?> getAllFoodSells();
-
-    BaseResponse<?>  getAllFoodRecipes();
+    BaseResponse<?>  getAllFoodRecipes(Integer page, Integer size);
 
     BaseResponse<?> getAllFoodsByCategory(Long categoryId);
 
@@ -25,7 +23,9 @@ public interface GuestUserService {
 
     BaseResponse<?> getAllFoodName();
 
-    BaseResponse<?> getAllFoods();
 
     BaseResponse<?> searchFoodsRecipeByName(String name);
+
+    BaseResponse<?> getAllFoods();
+
 }

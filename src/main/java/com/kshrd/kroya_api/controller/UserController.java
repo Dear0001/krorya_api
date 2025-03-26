@@ -70,69 +70,69 @@ public class UserController {
         return userService.updateProfile(profileUpdateRequest);
     }
 
-    @Operation(
-            summary = "🗑️ Delete User Account",
-            description = """
-                    Deletes the account of the currently authenticated user.
-                    
-                    **Response Summary**:
-                    - **200**: ✅ Account deleted successfully.
-                    - **401**: 🚫 Unauthorized access.
-                    """
-    )
-    @DeleteMapping("/delete-account")
-    public BaseResponse<?> deleteAccount() {
-        return userService.deleteAccount();
-    }
+//    @Operation(
+//            summary = "🗑️ Delete User Account",
+//            description = """
+//                    Deletes the account of the currently authenticated user.
+//
+//                    **Response Summary**:
+//                    - **200**: ✅ Account deleted successfully.
+//                    - **401**: 🚫 Unauthorized access.
+//                    """
+//    )
+//    @DeleteMapping("/delete-account")
+//    public BaseResponse<?> deleteAccount() {
+//        return userService.deleteAccount();
+//    }
 
-    @Operation(
-            summary = "🔗 Connect to Webill Service",
-            description = """
-                    Establishes a connection with the Webill service using provided credentials.
-                    
-                    **Request Body**: JSON object containing Webill credentials.
-                    
-                    **Response Summary**:
-                    - **200**: ✅ Successfully connected to Webill.
-                    - **400**: 🚫 Invalid credentials.
-                    """
-    )
-    @PostMapping("/connectWebill")
-    public BaseResponse<?> connectWebill(@RequestBody CredentialEntity credentialEntity) {
-        return userService.connectWebill(credentialEntity);
-    }
+//    @Operation(
+//            summary = "🔗 Connect to Webill Service",
+//            description = """
+//                    Establishes a connection with the Webill service using provided credentials.
+//
+//                    **Request Body**: JSON object containing Webill credentials.
+//
+//                    **Response Summary**:
+//                    - **200**: ✅ Successfully connected to Webill.
+//                    - **400**: 🚫 Invalid credentials.
+//                    """
+//    )
+//    @PostMapping("/connectWebill")
+//    public BaseResponse<?> connectWebill(@RequestBody CredentialEntity credentialEntity) {
+//        return userService.connectWebill(credentialEntity);
+//    }
 
-    @Operation(
-            summary = "🔌 Disconnect Webill Integration",
-            description = """
-                    Disconnects the user's integration with Webill.
-                    
-                    **Response Summary**:
-                    - **200**: ✅ Disconnected successfully.
-                    - **401**: 🚫 Unauthorized access.
-                    """
-    )
-    @DeleteMapping("/disconnectWebill")
-    public BaseResponse<?> disConnectWebill() {
-        return userService.disconnectWebill();
-    }
+//    @Operation(
+//            summary = "🔌 Disconnect Webill Integration",
+//            description = """
+//                    Disconnects the user's integration with Webill.
+//
+//                    **Response Summary**:
+//                    - **200**: ✅ Disconnected successfully.
+//                    - **401**: 🚫 Unauthorized access.
+//                    """
+//    )
+//    @DeleteMapping("/disconnectWebill")
+//    public BaseResponse<?> disConnectWebill() {
+//        return userService.disconnectWebill();
+//    }
 
-    @Operation(
-            summary = "🔑 Retrieve User Credentials by User ID",
-            description = """
-                    Fetches Webill credentials for a specific user.
-                    
-                    **Path Variable**: **userId** (Integer): ID of the user whose credentials are to be fetched.
-                    
-                    **Response Summary**:
-                    - **200**: ✅ Credentials retrieved successfully.
-                    - **404**: 🚫 User or credentials not found.
-                    """
-    )
-    @GetMapping("/webill-acc-no/{userId}")
-    public BaseResponse<?> getWebillAccNoByUserId(@PathVariable("userId") Integer userId) {
-        return userService.getWebillAccNoByUserId(userId);
-    }
+//    @Operation(
+//            summary = "🔑 Retrieve User Credentials by User ID",
+//            description = """
+//                    Fetches Webill credentials for a specific user.
+//
+//                    **Path Variable**: **userId** (Integer): ID of the user whose credentials are to be fetched.
+//
+//                    **Response Summary**:
+//                    - **200**: ✅ Credentials retrieved successfully.
+//                    - **404**: 🚫 User or credentials not found.
+//                    """
+//    )
+//    @GetMapping("/webill-acc-no/{userId}")
+//    public BaseResponse<?> getWebillAccNoByUserId(@PathVariable("userId") Integer userId) {
+//        return userService.getWebillAccNoByUserId(userId);
+//    }
 
     @Operation(
             summary = "📱 Retrieve Device Token by User ID",

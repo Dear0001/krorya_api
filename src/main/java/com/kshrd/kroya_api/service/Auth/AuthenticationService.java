@@ -1,6 +1,5 @@
 package com.kshrd.kroya_api.service.Auth;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kshrd.kroya_api.config.JwtService;
 import com.kshrd.kroya_api.entity.CodeEntity;
 import com.kshrd.kroya_api.entity.UserEntity;
@@ -18,11 +17,9 @@ import com.kshrd.kroya_api.repository.Code.CodeRepository;
 import com.kshrd.kroya_api.repository.User.UserRepository;
 import com.kshrd.kroya_api.service.Code.EmailService;
 import jakarta.mail.MessagingException;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -155,7 +152,7 @@ public class AuthenticationService {
     }
 
     // Helper method to save the user's token to the database for later use
-    private void saveUserToken(UserEntity user, String jwtToken) {
+    public void saveUserToken(UserEntity user, String jwtToken) {
         log.debug("Saving token for user: {}", user.getEmail());
 
         // Check if the token already exists
@@ -181,7 +178,7 @@ public class AuthenticationService {
     }
 
     // Helper method to revoke all tokens for a user (used when a user logs in)
-    private void revokeAllUserTokens(UserEntity user) {
+    public void revokeAllUserTokens(UserEntity user) {
         log.debug("Revoking all valid tokens for user: {}", user.getEmail());
         var validUserTokens = tokenRepository.findAllValidTokenByUser(user.getId());
         if (validUserTokens.isEmpty()) {
@@ -529,4 +526,73 @@ public class AuthenticationService {
                 .build();
     }
 
+
+    public String generateToken(UserEntity user) {
+        return jwtService.generateToken(user);
+    }
+
+    public String generateRefreshToken(UserEntity user) {
+        return jwtService.generateRefreshToken(user);
+    }
+
+//
+    public BaseResponse<?> handleOAuth2Login(OAuth2Request oauthRequest, String provider) {
+        try {
+            // Validate required fields
+            if (oauthRequest.getEmail() == null || oauthRequest.getEmail().isEmpty()) {
+                return BaseResponse.builder()
+                        .statusCode("400")
+                        .message("Email is required")
+                        .build();
+            }
+
+            // Check if user exists or create new one
+            UserEntity user = userRepository.findByEmail(oauthRequest.getEmail());
+            if (user == null) {
+                // Generate a random password for OAuth users
+                String randomPassword = UUID.randomUUID().toString();
+
+                user = UserEntity.builder()
+                        .email(oauthRequest.getEmail())
+                        .fullName(oauthRequest.getFullName())
+                        .isEmailVerified(true)
+                        .emailVerifiedAt(LocalDateTime.now())
+                        .role("ROLE_USER")
+                        .createdAt(LocalDateTime.now())
+                        .password(passwordEncoder.encode(randomPassword))
+                        .build();
+                userRepository.save(user);
+            }
+
+            // Generate tokens using this service's methods directly
+            String jwtToken = generateToken(user);
+            String refreshToken = generateRefreshToken(user);
+
+            // Manage tokens
+            revokeAllUserTokens(user);
+            saveUserToken(user, jwtToken);
+
+            AuthenticationResponse authResponse = AuthenticationResponse.builder()
+                    .role(user.getRole())
+                    .accessToken(jwtToken)
+                    .refreshToken(refreshToken)
+                    .profileImage(user.getProfileImage())
+                    .fullName(user.getFullName())
+                    .email(user.getEmail())
+                    .createdDate(user.getCreatedAt().toString())
+                    .build();
+
+            return BaseResponse.builder()
+                    .statusCode("200")
+                    .message(provider + " login successful")
+                    .payload(authResponse)
+                    .build();
+
+        } catch (Exception e) {
+            return BaseResponse.builder()
+                    .statusCode("500")
+                    .message("Error processing " + provider + " login: " + e.getMessage())
+                    .build();
+        }
+    }
 }

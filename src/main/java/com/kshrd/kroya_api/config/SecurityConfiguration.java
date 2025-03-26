@@ -37,10 +37,11 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/api/v1/auth/**",
+                                "/api/v1/oauth2/**",
                                 "/api/v1/fileView/**",
-                                "/api/v1/guest-user/**",
-                                "/api/v1/favorite/**",
+                                "/api/v1/category/**",
                                 "/api/v1/address/**",
+                                "/api/v1/guest-user/**",
                                 "/api/v1/user/**",
                                 "/api/v1/guest-user/feedback/{foodId}",
                                 "/v2/api-docs",
@@ -55,23 +56,19 @@ public class SecurityConfiguration {
                                 "/swagger-ui.html"
                         ).permitAll()
 
-                        // Cuisine & Category: Allow authenticated users to CREATE (POST) & GET
-                        .requestMatchers(HttpMethod.GET, "/api/v1/cuisine/**", "/api/v1/category/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/cuisine/**", "/api/v1/category/**").authenticated()
-
                         // ADMIN-only routes
                         .requestMatchers(
                                 "/api/v1/food-sell/**",
                                 "/api/v1/food-recipe/post-food-recipe",
                                 "/api/v1/food-recipe/edit-food-recipe/**",
+                                "/api/v1/guest-user/food-recipe/list",
                                 "/api/v1/food-recipe/delete/**",
-                                "/api/v1/user/all",
-                                "/api/v1/foods/**",
-                                "/api/v1/category/**"
+                                "/api/v1/user/all"
                         ).hasRole("ADMIN")
 
                         .anyRequest().authenticated()
                 )
+
                 .exceptionHandling(exceptionHandling ->
                         exceptionHandling
                                 .accessDeniedHandler(this::accessDeniedHandler)

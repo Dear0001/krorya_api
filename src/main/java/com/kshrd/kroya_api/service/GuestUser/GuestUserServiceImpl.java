@@ -1,14 +1,16 @@
 package com.kshrd.kroya_api.service.GuestUser;
 
 import com.kshrd.kroya_api.dto.*;
-import com.kshrd.kroya_api.entity.FeedbackEntity;
-import com.kshrd.kroya_api.entity.FoodRecipeEntity;
-import com.kshrd.kroya_api.entity.FoodSellEntity;
-import com.kshrd.kroya_api.entity.UserEntity;
+import com.kshrd.kroya_api.entity.*;
 import com.kshrd.kroya_api.enums.ItemType;
 import com.kshrd.kroya_api.exception.NotFoundExceptionHandler;
 import com.kshrd.kroya_api.exception.constand.FieldBlankExceptionHandler;
 import com.kshrd.kroya_api.payload.BaseResponse;
+import com.kshrd.kroya_api.payload.Category.PaginationMeta;
+import com.kshrd.kroya_api.repository.Favorite.FavoriteRepository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import com.kshrd.kroya_api.payload.FoodRecipe.FoodRecipeCardResponse;
 import com.kshrd.kroya_api.payload.FoodRecipe.FoodRecipeResponse;
 import com.kshrd.kroya_api.payload.FoodSell.FoodSellCardResponse;
@@ -20,6 +22,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -41,129 +44,93 @@ public class GuestUserServiceImpl implements GuestUserService {
     private final FoodRecipeRepository foodRecipeRepository;
     private final ModelMapper modelMapper;
     private final FeedbackRepository feedbackRepository;
+    private final FavoriteRepository favoriteRepository;
 
-    //Get all food sells
     @Override
-    public BaseResponse<?> getAllFoodSells() {
-        log.info("Fetching all FoodSell records for guest user");
+    public BaseResponse<?> getAllFoodRecipes(Integer page, Integer size) {
+            log.info("Fetching all FoodRecipe records for guest user with pagination and sorting by descending order");
 
-        // Fetch all FoodSellEntity records from the database
-        List<FoodSellEntity> foodSellEntities = foodSellRepository.findAll();
+            // Set default values for page and size if they are not provided
+            if (page == null || page < 0) {
+                page = 0;
+            }
+            if (size == null || size <= 0) {
+                size = 10;
+            }
 
-        // Check if no records were found
-        if (foodSellEntities.isEmpty()) {
-            log.warn("No FoodSell records found in the database");
-            throw new NotFoundExceptionHandler("No FoodSell records found.");
+            Pageable pageable = PageRequest.of(page, size);
+
+            // Fetch paginated and sorted food recipes
+            Page<FoodRecipeEntity> foodRecipePage = foodRecipeRepository.findAllByOrderByIdDesc(pageable);
+            if (foodRecipePage.isEmpty()) {
+                throw new NotFoundExceptionHandler("No FoodRecipe records found.");
+            }
+
+            // Get the currently authenticated user
+            UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+            log.info("User authenticated: {}", currentUser.getEmail());
+
+            // Fetch the user's favorite recipes
+            List<FavoriteEntity> userFavorites = favoriteRepository.findByUserAndFoodRecipeIsNotNull(currentUser);
+            List<Long> userFavoriteRecipeIds = userFavorites.stream()
+                    .map(favorite -> favorite.getFoodRecipe().getId())
+                    .toList();
+
+            // Map each FoodRecipeEntity to FoodRecipeCardResponse
+            List<FoodRecipeCardResponse> foodRecipeCardResponses = foodRecipePage.getContent().stream()
+                    .map(foodRecipeEntity -> {
+                        // Use ModelMapper to map entity to response
+                        FoodRecipeCardResponse response = modelMapper.map(foodRecipeEntity, FoodRecipeCardResponse.class);
+
+                        // Set additional fields from FoodRecipeEntity
+                        response.setName(foodRecipeEntity.getName());
+                        response.setAverageRating(foodRecipeEntity.getAverageRating());
+                        response.setTotalRaters(foodRecipeEntity.getTotalRaters());
+
+                        // Map photos to a list of PhotoDTOs
+                        List<PhotoDTO> photoDTOs = foodRecipeEntity.getPhotos().stream()
+                                .map(photo -> new PhotoDTO(photo.getId(), photo.getPhoto()))
+                                .collect(Collectors.toList());
+                        response.setPhoto(photoDTOs);
+
+                        // Map user information to UserDTO
+                        UserEntity creator = foodRecipeEntity.getUser();
+                        UserDTO userDTO = UserDTO.builder()
+                                .id(creator.getId())
+                                .fullName(creator.getFullName())
+                                .profileImage(creator.getProfileImage())
+                                .build();
+                        response.setUser(userDTO);
+
+                        // Set isFavorite if it's in the user's favorites
+                        response.setIsFavorite(userFavoriteRecipeIds.contains(foodRecipeEntity.getId()));
+
+                        return response;
+                    })
+                    .collect(Collectors.toList());
+
+            // Prepare pagination details
+            long totalFoodRecipes = foodRecipePage.getTotalElements();
+            int totalPages = foodRecipePage.getTotalPages();
+            int currentPage = foodRecipePage.getNumber();
+
+            // Construct the "next" and "previous" links
+            String nextLink = (currentPage + 1 < totalPages) ?
+                    String.format("/api/v1/guest-user/food-recipe/list?page=%d&size=%d", currentPage + 1, size) : null;
+            String prevLink = (currentPage > 0) ?
+                    String.format("/api/v1/guest-user/food-recipe/list?page=%d&size=%d", currentPage - 1, size) : null;
+
+            // Create the PaginationMeta object
+            PaginationMeta paginationMeta = new PaginationMeta(totalFoodRecipes, totalPages, currentPage, size, nextLink, prevLink);
+
+            // Return the response with the list of FoodRecipeCardResponse objects and pagination metadata
+            return BaseResponse.builder()
+                    .message("All FoodRecipe records fetched successfully for guest user")
+                    .statusCode(String.valueOf(HttpStatus.OK.value()))
+                    .payload(foodRecipeCardResponses)
+                    .paginationMeta(paginationMeta)
+                    .build();
         }
-
-        // Get the current time in Phnom Penh time zone (UTC+7)
-        ZonedDateTime currentDateTimeInPhnomPenh = ZonedDateTime.now(ZoneId.of("Asia/Phnom_Penh"));
-
-        // Map each FoodSellEntity to FoodSellCardResponse
-        List<FoodSellCardResponse> foodSellCardResponses = foodSellEntities.stream()
-                .map(foodSellEntity -> {
-                    // Determine if the food is orderable based on the dateCooking
-                    boolean isOrderable = !foodSellEntity.getDateCooking()
-                            .atZone(ZoneId.of("Asia/Phnom_Penh"))
-                            .isBefore(currentDateTimeInPhnomPenh);
-                    foodSellEntity.setIsOrderable(isOrderable);
-
-                    // Map using ModelMapper
-                    FoodSellCardResponse response = modelMapper.map(foodSellEntity, FoodSellCardResponse.class);
-
-                    // Set foodSellId explicitly
-                    response.setFoodSellId(foodSellEntity.getId());
-
-                    // Set isOrderable explicitly
-                    response.setIsOrderable(isOrderable);
-
-                    // Set additional fields from the related FoodRecipeEntity
-                    FoodRecipeEntity linkedRecipe = foodSellEntity.getFoodRecipe();
-
-                    // Map photos from FoodRecipeEntity to structured list
-                    List<PhotoDTO> photoDTOs = linkedRecipe.getPhotos().stream()
-                            .map(photo -> new PhotoDTO(photo.getId(), photo.getPhoto()))
-                            .collect(Collectors.toList());
-                    response.setPhoto(photoDTOs);
-
-                    // Map additional details from linked recipe
-                    response.setName(linkedRecipe.getName());
-                    response.setAverageRating(linkedRecipe.getAverageRating());
-                    response.setTotalRaters(linkedRecipe.getTotalRaters());
-
-                    // Set seller information
-                    UserEntity seller = linkedRecipe.getUser();
-                    UserProfileDTO sellerInfo = UserProfileDTO.builder()
-                            .userId(Long.valueOf(seller.getId()))
-                            .fullName(seller.getFullName())
-                            .phoneNumber(seller.getPhoneNumber())
-                            .profileImage(seller.getProfileImage())
-                            .build();
-                    response.setSellerInformation(sellerInfo);
-
-                    return response;
-                })
-                .collect(Collectors.toList());
-
-        // Return the response with the list of FoodSellCardResponse objects
-        return BaseResponse.builder()
-                .message("All FoodSell records fetched successfully for guest user")
-                .statusCode(String.valueOf(HttpStatus.OK.value()))
-                .payload(foodSellCardResponses)
-                .build();
-    }
-
-    //Get all food recipes
-    @Override
-    public BaseResponse<?> getAllFoodRecipes() {
-        log.info("Fetching all FoodRecipe records for guest user");
-
-        // Fetch all FoodRecipeEntity records from the database
-        List<FoodRecipeEntity> foodRecipeEntities = foodRecipeRepository.findAll();
-
-        // Check if no records were found
-        if (foodRecipeEntities.isEmpty()) {
-            log.warn("No FoodRecipe records found in the database");
-            throw new NotFoundExceptionHandler("No FoodRecipe records found.");
-        }
-
-        // Map each FoodRecipeEntity to FoodRecipeCardResponse
-        List<FoodRecipeCardResponse> foodRecipeCardResponses = foodRecipeEntities.stream()
-                .map(foodRecipeEntity -> {
-                    // Use ModelMapper to map entity to response
-                    FoodRecipeCardResponse response = modelMapper.map(foodRecipeEntity, FoodRecipeCardResponse.class);
-
-                    // Set additional fields from FoodRecipeEntity
-                    response.setName(foodRecipeEntity.getName());
-                    response.setAverageRating(foodRecipeEntity.getAverageRating());
-                    response.setTotalRaters(foodRecipeEntity.getTotalRaters());
-
-                    // Map photos to a list of PhotoDTOs
-                    List<PhotoDTO> photoDTOs = foodRecipeEntity.getPhotos().stream()
-                            .map(photo -> new PhotoDTO(photo.getId(), photo.getPhoto()))
-                            .collect(Collectors.toList());
-                    response.setPhoto(photoDTOs);
-
-                    // Map user information to UserDTO
-                    UserEntity creator = foodRecipeEntity.getUser();
-                    UserDTO userDTO = UserDTO.builder()
-                            .id(creator.getId())
-                            .fullName(creator.getFullName())
-                            .profileImage(creator.getProfileImage())
-                            .build();
-                    response.setUser(userDTO);
-
-                    return response;
-                })
-                .collect(Collectors.toList());
-
-        // Return the response with the list of FoodRecipeCardResponse objects
-        return BaseResponse.builder()
-                .message("All FoodRecipe records fetched successfully for guest user")
-                .statusCode(String.valueOf(HttpStatus.OK.value()))
-                .payload(foodRecipeCardResponses)
-                .build();
-    }
 
     //Get all food by category id
     @Override
