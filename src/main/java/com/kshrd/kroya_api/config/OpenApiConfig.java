@@ -15,8 +15,8 @@ import io.swagger.v3.oas.annotations.servers.Server;
                 contact = @Contact(
                         name = "Krorya API",
                         email = "dochkouern@gmail.com",
-                        url = "http://localhost:8080"
-//                        url = "https://krorya-api.up.railway.app"
+//                        url = "http://localhost:8080"
+                        url = "https://krorya-api.up.railway.app"
                 ),
                 description = "OpenAPI documentation for Krorya API",
                 title = "Krorya API - OpenAPI Specification",
@@ -25,14 +25,14 @@ import io.swagger.v3.oas.annotations.servers.Server;
                         name = "MIT License",
                         url = "https://opensource.org/licenses/MIT"
                 ),
-                termsOfService = "http://localhost:8080/terms"
-//                termsOfService = "https://krorya-api.up.railway.app/terms"
+//                termsOfService = "http://localhost:8080/terms"
+                termsOfService = "https://krorya-api.up.railway.app/terms"
         ),
         servers = {
                 @Server(
                         description = "🚀 Production Server",
-                        url = "http://localhost:8080"
-//                        url = "https://krorya-api.up.railway.app"
+//                        url = "http://localhost:8080"
+                        url = "https://krorya-api.up.railway.app"
                 ),
                 @Server(
                         description = "🖥️ Local Development",
