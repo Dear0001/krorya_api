@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -35,15 +34,14 @@ public class SecurityConfiguration {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints (no auth required)
                         .requestMatchers(
                                 "/api/v1/auth/**",
-                                "/api/v1/oauth2/**",
+                                "/api/v1/provider/**",
                                 "/api/v1/fileView/**",
                                 "/api/v1/category/**",
                                 "/api/v1/address/**",
-                                "/api/v1/guest-user/**",
-                                "/api/v1/user/**",
-                                "/api/v1/guest-user/feedback/{foodId}",
+                                "/api/v1/guest-user/**", // This covers all guest-user endpoints
                                 "/v2/api-docs",
                                 "/v3/api-docs",
                                 "/v3/api-docs/**",
@@ -53,18 +51,30 @@ public class SecurityConfiguration {
                                 "/configuration/security",
                                 "/swagger-ui/**",
                                 "/webjars/**",
-                                "/swagger-ui.html"
+                                "/swagger-ui.html",
+
+                                // Read-only admin endpoints
+                                "/api/v1/user/all", // Get all users
+                                "/api/v1/dashboard/counts", // Dashboard stats
+                                "/api/v1/cuisine/all" // Get all cuisines
                         ).permitAll()
 
-                        // ADMIN-only routes
+                        // ADMIN-only write operations
                         .requestMatchers(
-                                "/api/v1/food-sell/**",
                                 "/api/v1/food-recipe/post-food-recipe",
                                 "/api/v1/food-recipe/edit-food-recipe/**",
-                                "/api/v1/guest-user/food-recipe/list",
                                 "/api/v1/food-recipe/delete/**",
-                                "/api/v1/user/all"
+                                "/api/v1/user/deleteUserById/**"
                         ).hasRole("ADMIN")
+
+                        // Protected endpoints (require auth)
+                        .requestMatchers(
+                                "/api/v1/favorite/**", // Favorite operations
+                                "/api/v1/feedback/**", // Feedback operations
+                                "/api/v1/user/profile", // User profile
+                                "/api/v1/user/edit-profile", // Profile update
+                                "/api/v1/user/device-token/**" // Device tokens
+                        ).authenticated()
 
                         .anyRequest().authenticated()
                 )
@@ -86,13 +96,12 @@ public class SecurityConfiguration {
         return http.build();
     }
 
-
     private void accessDeniedHandler(HttpServletRequest request, HttpServletResponse response, AccessDeniedException e) {
         jwtService.jwtExceptionHandler(response, ResponseMessage.FORBIDDEN);
     }
 
     public void unauthorizedHandler(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException) {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // Sets HTTP status to 401
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         jwtService.jwtExceptionHandler(response, ResponseMessage.UNAUTHORIZED);
     }
 }

@@ -22,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -48,89 +50,101 @@ public class GuestUserServiceImpl implements GuestUserService {
 
     @Override
     public BaseResponse<?> getAllFoodRecipes(Integer page, Integer size) {
-            log.info("Fetching all FoodRecipe records for guest user with pagination and sorting by descending order");
+        log.info("Fetching all FoodRecipe records for guest user with pagination and sorting by descending order");
 
-            // Set default values for page and size if they are not provided
-            if (page == null || page < 0) {
-                page = 0;
-            }
-            if (size == null || size <= 0) {
-                size = 10;
-            }
-
-            Pageable pageable = PageRequest.of(page, size);
-
-            // Fetch paginated and sorted food recipes
-            Page<FoodRecipeEntity> foodRecipePage = foodRecipeRepository.findAllByOrderByIdDesc(pageable);
-            if (foodRecipePage.isEmpty()) {
-                throw new NotFoundExceptionHandler("No FoodRecipe records found.");
-            }
-
-            // Get the currently authenticated user
-            UserEntity currentUser = (UserEntity) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            log.info("User authenticated: {}", currentUser.getEmail());
-
-            // Fetch the user's favorite recipes
-            List<FavoriteEntity> userFavorites = favoriteRepository.findByUserAndFoodRecipeIsNotNull(currentUser);
-            List<Long> userFavoriteRecipeIds = userFavorites.stream()
-                    .map(favorite -> favorite.getFoodRecipe().getId())
-                    .toList();
-
-            // Map each FoodRecipeEntity to FoodRecipeCardResponse
-            List<FoodRecipeCardResponse> foodRecipeCardResponses = foodRecipePage.getContent().stream()
-                    .map(foodRecipeEntity -> {
-                        // Use ModelMapper to map entity to response
-                        FoodRecipeCardResponse response = modelMapper.map(foodRecipeEntity, FoodRecipeCardResponse.class);
-
-                        // Set additional fields from FoodRecipeEntity
-                        response.setName(foodRecipeEntity.getName());
-                        response.setAverageRating(foodRecipeEntity.getAverageRating());
-                        response.setTotalRaters(foodRecipeEntity.getTotalRaters());
-
-                        // Map photos to a list of PhotoDTOs
-                        List<PhotoDTO> photoDTOs = foodRecipeEntity.getPhotos().stream()
-                                .map(photo -> new PhotoDTO(photo.getId(), photo.getPhoto()))
-                                .collect(Collectors.toList());
-                        response.setPhoto(photoDTOs);
-
-                        // Map user information to UserDTO
-                        UserEntity creator = foodRecipeEntity.getUser();
-                        UserDTO userDTO = UserDTO.builder()
-                                .id(creator.getId())
-                                .fullName(creator.getFullName())
-                                .profileImage(creator.getProfileImage())
-                                .build();
-                        response.setUser(userDTO);
-
-                        // Set isFavorite if it's in the user's favorites
-                        response.setIsFavorite(userFavoriteRecipeIds.contains(foodRecipeEntity.getId()));
-
-                        return response;
-                    })
-                    .collect(Collectors.toList());
-
-            // Prepare pagination details
-            long totalFoodRecipes = foodRecipePage.getTotalElements();
-            int totalPages = foodRecipePage.getTotalPages();
-            int currentPage = foodRecipePage.getNumber();
-
-            // Construct the "next" and "previous" links
-            String nextLink = (currentPage + 1 < totalPages) ?
-                    String.format("/api/v1/guest-user/food-recipe/list?page=%d&size=%d", currentPage + 1, size) : null;
-            String prevLink = (currentPage > 0) ?
-                    String.format("/api/v1/guest-user/food-recipe/list?page=%d&size=%d", currentPage - 1, size) : null;
-
-            // Create the PaginationMeta object
-            PaginationMeta paginationMeta = new PaginationMeta(totalFoodRecipes, totalPages, currentPage, size, nextLink, prevLink);
-
-            // Return the response with the list of FoodRecipeCardResponse objects and pagination metadata
-            return BaseResponse.builder()
-                    .message("All FoodRecipe records fetched successfully for guest user")
-                    .statusCode(String.valueOf(HttpStatus.OK.value()))
-                    .payload(foodRecipeCardResponses)
-                    .paginationMeta(paginationMeta)
-                    .build();
+        // Set default values for page and size if they are not provided
+        if (page == null || page < 0) {
+            page = 0;
         }
+        if (size == null || size <= 0) {
+            size = 10;
+        }
+
+        Pageable pageable = PageRequest.of(page, size);
+
+        // Fetch paginated and sorted food recipes
+        Page<FoodRecipeEntity> foodRecipePage = foodRecipeRepository.findAllByOrderByIdDesc(pageable);
+        if (foodRecipePage.isEmpty()) {
+            throw new NotFoundExceptionHandler("No FoodRecipe records found.");
+        }
+
+        // Initialize empty list for favorite recipe IDs
+        List<Long> userFavoriteRecipeIds = new ArrayList<>();
+
+        // Check if user is authenticated
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.isAuthenticated() && !(authentication instanceof AnonymousAuthenticationToken)) {
+            try {
+                // Get the authenticated user
+                UserEntity currentUser = (UserEntity) authentication.getPrincipal();
+                log.info("User authenticated: {}", currentUser.getEmail());
+
+                // Fetch the user's favorite recipes
+                List<FavoriteEntity> userFavorites = favoriteRepository.findByUserAndFoodRecipeIsNotNull(currentUser);
+                userFavoriteRecipeIds = userFavorites.stream()
+                        .map(favorite -> favorite.getFoodRecipe().getId())
+                        .toList();
+            } catch (ClassCastException e) {
+                log.warn("Unexpected principal type in security context");
+            }
+        }
+
+        // Map each FoodRecipeEntity to FoodRecipeCardResponse
+        List<Long> finalUserFavoriteRecipeIds = userFavoriteRecipeIds;
+        List<FoodRecipeCardResponse> foodRecipeCardResponses = foodRecipePage.getContent().stream()
+                .map(foodRecipeEntity -> {
+                    FoodRecipeCardResponse response = modelMapper.map(foodRecipeEntity, FoodRecipeCardResponse.class);
+
+                    // Set additional fields
+                    response.setName(foodRecipeEntity.getName());
+                    response.setAverageRating(foodRecipeEntity.getAverageRating());
+                    response.setTotalRaters(foodRecipeEntity.getTotalRaters());
+
+                    // Map photos
+                    List<PhotoDTO> photoDTOs = foodRecipeEntity.getPhotos().stream()
+                            .map(photo -> new PhotoDTO(photo.getId(), photo.getPhoto()))
+                            .collect(Collectors.toList());
+                    response.setPhoto(photoDTOs);
+
+                    // Map user information
+                    UserEntity creator = foodRecipeEntity.getUser();
+                    UserDTO userDTO = UserDTO.builder()
+                            .id(creator.getId())
+                            .fullName(creator.getFullName())
+                            .profileImage(creator.getProfileImage())
+                            .build();
+                    response.setUser(userDTO);
+
+
+                    // Set isFavorite if it's in the user's favorites
+                    response.setIsFavorite(finalUserFavoriteRecipeIds.contains(foodRecipeEntity.getId()));
+
+                    return response;
+                })
+                .collect(Collectors.toList());
+
+        // Prepare pagination details
+        long totalFoodRecipes = foodRecipePage.getTotalElements();
+        int totalPages = foodRecipePage.getTotalPages();
+        int currentPage = foodRecipePage.getNumber();
+
+        // Construct the "next" and "previous" links
+        String nextLink = (currentPage + 1 < totalPages) ?
+                String.format("/api/v1/guest-user/food-recipe/list?page=%d&size=%d", currentPage + 1, size) : null;
+        String prevLink = (currentPage > 0) ?
+                String.format("/api/v1/guest-user/food-recipe/list?page=%d&size=%d", currentPage - 1, size) : null;
+
+        // Create the PaginationMeta object
+        PaginationMeta paginationMeta = new PaginationMeta(totalFoodRecipes, totalPages, currentPage, size, nextLink, prevLink);
+
+        // Return the response
+        return BaseResponse.builder()
+                .message("All FoodRecipe records fetched successfully")
+                .statusCode(String.valueOf(HttpStatus.OK.value()))
+                .payload(foodRecipeCardResponses)
+                .paginationMeta(paginationMeta)
+                .build();
+    }
 
     //Get all food by category id
     @Override
