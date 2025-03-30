@@ -7,10 +7,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/provider")
+@RequestMapping("/api/v1/oauth2")
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-dashbaord.vercel.app"})
-public class ProviderController {
+@CrossOrigin(origins = {"http://localhost:3000", "https://krorya-eosin.vercel.app"})
+public class Oauth2Controller {
 
     private final AuthenticationService authenticationService;
 

@@ -37,7 +37,7 @@ public class SecurityConfiguration {
                         // Public endpoints (no auth required)
                         .requestMatchers(
                                 "/api/v1/auth/**",
-                                "/api/v1/provider/**",
+                                "/api/v1/oauth2/**",
                                 "/api/v1/fileView/**",
                                 "/api/v1/category/**",
                                 "/api/v1/address/**",

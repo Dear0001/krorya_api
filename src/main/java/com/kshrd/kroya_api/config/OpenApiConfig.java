@@ -31,7 +31,6 @@ import io.swagger.v3.oas.annotations.servers.Server;
         servers = {
                 @Server(
                         description = "🚀 Production Server",
-//                        url = "http://localhost:8080"
                         url = "https://krorya-api.up.railway.app"
                 ),
                 @Server(
