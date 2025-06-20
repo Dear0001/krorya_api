@@ -12,41 +12,35 @@ import io.swagger.v3.oas.annotations.servers.Server;
 
 @OpenAPIDefinition(
         info = @Info(
-                contact = @Contact(
-                        name = "Krorya API",
-                        email = "dochkouern@gmail.com",
-                        url = "http://localhost:8080"
-//                        url = "https://krorya-api.up.railway.app"
-                ),
-                description = "OpenAPI documentation for Krorya API",
                 title = "Krorya API - OpenAPI Specification",
                 version = "1.0",
+                description = "OpenAPI documentation for Krorya API",
+                termsOfService = "http://localhost:8080/terms",
+                contact = @Contact(
+                        name = "Krorya API",
+                        url = "https://seavphovmhob-api.onrender.com",
+                        email = "dochkouern@gmail.com"
+                ),
                 license = @License(
                         name = "MIT License",
                         url = "https://opensource.org/licenses/MIT"
-                ),
-                termsOfService = "http://localhost:8080/terms"
-//                termsOfService = "https://krorya-api.up.railway.app/terms"
+                )
         ),
         servers = {
                 @Server(
                         description = "🚀 Production Server",
-                        url = "https://krorya-api.up.railway.app"
+                        url = "https://seavphovmhob-api.onrender.com"
                 ),
                 @Server(
                         description = "🖥️ Local Development",
                         url = "http://localhost:8080"
                 )
         },
-        security = {
-                @SecurityRequirement(
-                        name = "bearerAuth"
-                )
-        }
+        security = @SecurityRequirement(name = "bearerAuth") // Applies to all endpoints globally
 )
 @SecurityScheme(
         name = "bearerAuth",
-        description = "JWT Authentication using Bearer Token",
+        description = "JWT Auth with Bearer Token",
         scheme = "bearer",
         type = SecuritySchemeType.HTTP,
         bearerFormat = "JWT",
