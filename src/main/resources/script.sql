@@ -194,3 +194,17 @@ ALTER TABLE public.token_tb
         FOREIGN KEY (user_id)
             REFERENCES public.user_tb (id)
             ON DELETE CASCADE;
+INSERT INTO cusine_tb(cuisine_name)
+VALUES
+    ('Soup'),
+    ('Salad'),
+    ('Grill'),
+    ('Fry'),
+    ('Stir-Fried'),
+    ('Dessert'),
+    ('Steam');
+
+INSERT INTO category_tb(category_name)
+VALUES ('Breakfast'),
+       ('Lunch'),
+       ('Dinner');
