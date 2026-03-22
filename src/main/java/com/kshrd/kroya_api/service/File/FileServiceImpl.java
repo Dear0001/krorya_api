@@ -1,12 +1,18 @@
 package com.kshrd.kroya_api.service.File;
 
 import com.kshrd.kroya_api.entity.FileEntity;
-import com.kshrd.kroya_api.exception.NotFoundExceptionHandler;
 import com.kshrd.kroya_api.repository.File.FileRepository;
+import io.minio.BucketExistsArgs;
+import io.minio.GetObjectArgs;
+import io.minio.MakeBucketArgs;
+import io.minio.MinioClient;
+import io.minio.PutObjectArgs;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -14,21 +20,43 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.io.InputStream;
 import java.util.UUID;
 
 @Service
 public class FileServiceImpl implements FileService {
     @Autowired
     private final FileRepository fileRepository;
-    private final Path root = Paths.get("src/main/resources/Datauplaod");
-//    private final Path root= Paths.get("/home/hrd123/easycartImage/");
+    private final MinioClient minioClient;
+    private final String bucketName;
+    private final String minioUrl;
 
-    public FileServiceImpl(FileRepository fileRepository) {
+    public FileServiceImpl(
+            FileRepository fileRepository,
+            MinioClient minioClient,
+            @Value("${minio.bucketName}") String bucketName,
+            @Value("${minio.url}") String minioUrl
+    ) {
         this.fileRepository = fileRepository;
+        this.minioClient = minioClient;
+        this.bucketName = bucketName;
+        this.minioUrl = minioUrl;
+    }
+
+    @PostConstruct
+    public void ensureBucketExists() {
+        // Queue 4 requirement: force local MinIO only.
+        if (!(minioUrl.contains("localhost") || minioUrl.contains("127.0.0.1"))) {
+            throw new IllegalStateException("Only local MinIO endpoints are allowed for file storage.");
+        }
+        try {
+            boolean found = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!found) {
+                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            }
+        } catch (Exception e) {
+            throw new IllegalStateException("Failed to initialize MinIO bucket: " + bucketName, e);
+        }
     }
 
     @Override
@@ -42,15 +70,19 @@ public class FileServiceImpl implements FileService {
             String fileName = file.getOriginalFilename();
             if (fileName != null) {
                 fileName = UUID.randomUUID() + "." + StringUtils.getFilenameExtension(fileName);
-                if (!Files.exists(root)) {
-                    Files.createDirectories(root);
-                }
-                Files.copy(file.getInputStream(), root.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucketName)
+                                .object(fileName)
+                                .stream(file.getInputStream(), file.getSize(), -1)
+                                .contentType(file.getContentType())
+                                .build()
+                );
                 return fileName;
             } else {
                 return "File Not Found!";
             }
-        } catch (IOException ex) {
+        } catch (Exception ex) {
             throw new IOException("File not found!");
         }
     }
@@ -64,11 +96,14 @@ public class FileServiceImpl implements FileService {
                 throw new FileNotFoundException("File not found with name: " + fileName);
             }
 
-            // Define the path to the file
-            Path path = Paths.get("src/main/resources/Datauplaod/" + files.getFileName());
-            // Read the file into a Resource object
-            Resource file = new ByteArrayResource(Files.readAllBytes(path));
-            return file;
+            try (InputStream stream = minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(files.getFileName())
+                            .build()
+            )) {
+                return new ByteArrayResource(stream.readAllBytes());
+            }
 
         } catch (FileNotFoundException e) {
             // Handle the case when the file entity is not found

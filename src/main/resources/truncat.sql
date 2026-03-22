@@ -25,3 +25,23 @@ SET session_replication_role = 'origin';
 
 -- Confirm cleanup
 SELECT 'Database cleanup completed! IDs reset to 1.' AS message;
+
+INSERT INTO cusine_tb (cuisine_name) VALUES
+                                         ('ឆា'),
+                                         ('អាំង'),
+                                         ('បំពង'),
+                                         ('ចំហុយ'),
+                                         ('បុក'),
+                                         ('ញាំ'),
+                                         ('ឡុកឡាក់'),
+                                         ('បាយ'),
+                                         ('បាយឆា'),
+                                         ('មី'),
+                                         ('នំបញ្ចុក'),
+                                         ('នំបញ្ចុកសម្លរ'),
+                                         ('ស៊ុប'),
+                                         ('ការី'),
+                                         ('ប្រហុក'),
+                                         ('អំបុក'),
+                                         ('ទឹកជ្រលក់'),
+                                         ('បង្អែម');

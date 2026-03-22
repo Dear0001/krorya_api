@@ -35,10 +35,10 @@ public class CategoryServiceImp implements CategoryService {
         log.info("Received request to create a category with name: {}", categoryName);
 
         // Validate category name to ensure it does not contain numbers, special characters, or blank spaces
-        if (!categoryName.matches("^[a-zA-Z\\s]+$")) {
-            log.warn("Invalid category name: '{}'. It must contain only letters and spaces.", categoryName);
-            throw new InvalidValueExceptionHandler("Category name can only contain letters and spaces, without numbers or special characters.");
-        }
+//        if (!categoryName.matches("^[a-zA-Z\\s]+$")) {
+//            log.warn("Invalid category name: '{}'. It must contain only letters and spaces.", categoryName);
+//            throw new InvalidValueExceptionHandler("Category name can only contain letters and spaces, without numbers or special characters.");
+//        }
 
         // Check if a category with the same name already exists
         Optional<CategoryEntity> existingCategory = categoryRepository.findByCategoryName(categoryName);

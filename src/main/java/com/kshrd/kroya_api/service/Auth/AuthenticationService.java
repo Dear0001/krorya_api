@@ -22,7 +22,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.security.SecureRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -44,6 +47,9 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final CodeRepository codeRepository;
     private final EmailService emailService;
+
+    private static final int OTP_EXPIRY_MINUTES = 3;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     // Step 1: Validate Email (for the first screen)
     public BaseResponse<?> checkEmailExist(String email) {
@@ -77,6 +83,10 @@ public class AuthenticationService {
 
         log.debug("Validating login request for email: {}", loginRequest.getEmail());
         validation.ValidationEmail(loginRequest.getEmail());
+
+        if (loginRequest.getPassword() == null || loginRequest.getPassword().trim().isEmpty()) {
+            throw new BadRequestException("Password is required", new BadCredentialsException("Missing password"));
+        }
 
         var userEntity = userRepository.findByEmail(loginRequest.getEmail());
 
@@ -276,13 +286,12 @@ public class AuthenticationService {
         // Check if OTP already exists for this email
         CodeEntity codeEntity = codeRepository.findByEmail(email);
 
-        // Generate a 6-digit OTP code
-        String otp = String.format("%06d", new Random().nextInt(999999));
+        // Generate a 6-digit OTP code (supports leading zeros)
+        String otp = String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
 
-        // Set OTP expiry to 5 minutes from now
-        int otpExpiryMinutes = 3;
+        // Set OTP expiry
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expiryDate = now.plusMinutes(otpExpiryMinutes);
+        LocalDateTime expiryDate = now.plusMinutes(OTP_EXPIRY_MINUTES);
 
         // If OTP already exists, update it; otherwise, create a new CodeEntity
         if (codeEntity != null) {
@@ -290,6 +299,10 @@ public class AuthenticationService {
             codeEntity.setPinCode(otp);
             codeEntity.setExpireDate(expiryDate);
             codeEntity.setCreateDate(now);
+            codeEntity.setEmail(email);
+            if (user != null) {
+                codeEntity.setUser(user);
+            }
         } else {
             log.info("Creating new OTP for email: {}", email);
             codeEntity = new CodeEntity();
@@ -297,7 +310,9 @@ public class AuthenticationService {
             codeEntity.setPinCode(otp);
             codeEntity.setCreateDate(now);
             codeEntity.setExpireDate(expiryDate);
-            codeEntity.setUser(user);
+            if (user != null) {
+                codeEntity.setUser(user);
+            }
         }
 
         // Attempt to save OTP code to the database
@@ -308,7 +323,8 @@ public class AuthenticationService {
             throw new RuntimeException("An error occurred while saving OTP. Please try again.");
         }
 
-        log.info("Generated OTP for email: {}, OTP: {}", email, otp);
+        // Do not log OTP values (security risk).
+        log.info("Generated OTP for email: {} (expires in {} minutes)", email, OTP_EXPIRY_MINUTES);
 
         // Send the OTP to the user via email
         try {
@@ -321,12 +337,11 @@ public class AuthenticationService {
         // Prepare response payload
         Map<String, String> payload = new LinkedHashMap<>();
         payload.put("email", email);
-        payload.put("otp", otp);
 
         // Return success response
         return BaseResponse.builder()
                 .payload(payload)
-                .message("OTP generated and sent successfully. It will expire in " + otpExpiryMinutes + " minutes.")
+                .message("OTP generated and sent successfully. It will expire in " + OTP_EXPIRY_MINUTES + " minutes.")
                 .statusCode("200")
                 .build();
     }
@@ -383,7 +398,8 @@ public class AuthenticationService {
             // If user does not exist, create a new user
             UserEntity newUser = new UserEntity();
             newUser.setEmail(email);
-            newUser.setPassword(passwordEncoder.encode("default_password"));
+            // Use a random password so nobody can login with a predictable default.
+            newUser.setPassword(passwordEncoder.encode(UUID.randomUUID().toString()));
             newUser.setFullName("");
             newUser.setPhoneNumber("");
             newUser.setEmailVerified(true);
@@ -393,6 +409,14 @@ public class AuthenticationService {
 
             userRepository.save(newUser);
             log.info("New user created and email verified for email: {}", email);
+        }
+
+        // Consume OTP so it can't be replayed.
+        try {
+            codeRepository.delete(codeEntity);
+        } catch (Exception e) {
+            // OTP consumption failing should not block login/register; still fail closed if needed.
+            log.warn("Failed to delete consumed OTP for email: {}", email, e);
         }
 
         // Prepare success payload
@@ -421,6 +445,9 @@ public class AuthenticationService {
         if (passwordRequest.getNewPassword() == null || passwordRequest.getNewPassword().isEmpty()) {
             throw new BadRequestException("Password is required", new BadCredentialsException("Invalid password input"));
         }
+
+        validation.ValidationEmail(passwordRequest.getEmail());
+        validation.ValidationPassword(passwordRequest.getNewPassword());
 
         // Find user by email
         var user = userRepository.findByEmail(passwordRequest.getEmail());
@@ -508,17 +535,59 @@ public class AuthenticationService {
 
         log.info("Processing reset password for email: {}", passwordRequest.getEmail());
 
-        // Find the user by email
-        var user = userRepository.findByEmail(passwordRequest.getEmail());
-        if (user == null) {
-            throw new NotFoundExceptionHandler("User not found");
+        if (passwordRequest.getEmail() == null || passwordRequest.getEmail().trim().isEmpty()) {
+            throw new BadRequestException("Email is required", new BadCredentialsException("Invalid email input"));
+        }
+        if (passwordRequest.getNewPassword() == null || passwordRequest.getNewPassword().trim().isEmpty()) {
+            throw new BadRequestException("Password is required", new BadCredentialsException("Invalid password input"));
         }
 
-        // Update the password for the user
-        user.setPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
-        userRepository.save(user);
+        validation.ValidationEmail(passwordRequest.getEmail());
+        validation.ValidationPassword(passwordRequest.getNewPassword());
 
-        log.info("Password reset successfully for email: {}", passwordRequest.getEmail());
+        // Find the user by email
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated =
+                authentication != null
+                        && authentication.isAuthenticated()
+                        && !(authentication instanceof AnonymousAuthenticationToken);
+
+        if (isAuthenticated && authentication.getPrincipal() instanceof UserEntity currentUser) {
+            // Authenticated change-password flow (settings page).
+            if (currentUser.isDeleted()) {
+                throw new NotFoundExceptionHandler("You have been banned");
+            }
+            currentUser.setPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
+            userRepository.save(currentUser);
+            log.info("Password changed successfully for authenticated user: {}", currentUser.getEmail());
+        } else {
+            // Unauthenticated forgot-password flow:
+            // Only allow reset if the user has recently verified email via OTP.
+            var user = userRepository.findByEmail(passwordRequest.getEmail());
+            if (user == null) {
+                throw new NotFoundExceptionHandler("User not found");
+            }
+
+            if (!user.isEmailVerified() || user.getEmailVerifiedAt() == null) {
+                throw new BadRequestException(
+                        "OTP verification required: send and validate the OTP before resetting.",
+                        new BadCredentialsException("Email not verified")
+                );
+            }
+
+            LocalDateTime verifiedAt = user.getEmailVerifiedAt();
+            LocalDateTime expiryWindowStart = LocalDateTime.now().minusMinutes(OTP_EXPIRY_MINUTES);
+            if (verifiedAt.isBefore(expiryWindowStart)) {
+                throw new BadRequestException(
+                        "OTP has expired. Please request a new OTP and validate it again before resetting.",
+                        new BadCredentialsException("OTP expired")
+                );
+            }
+
+            user.setPassword(passwordEncoder.encode(passwordRequest.getNewPassword()));
+            userRepository.save(user);
+            log.info("Password reset successfully for email (OTP verified): {}", passwordRequest.getEmail());
+        }
 
         return BaseResponse.builder()
                 .message("Password reset successfully")

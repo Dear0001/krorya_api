@@ -35,10 +35,10 @@ public class CuisineServiceImpl implements CuisineService {
         log.info("Received request to create a cuisine with name: {}", cuisineName);
 
         // Validate cuisine name to ensure it does not contain numbers, special characters, or blank spaces
-        if (!cuisineName.matches("^[a-zA-Z\\s]+$")) {
-            log.warn("Invalid cuisine name: '{}'. It must contain only letters and spaces.", cuisineName);
-            throw new InvalidValueExceptionHandler("Cuisine name can only contain letters and spaces, without numbers or special characters.");
-        }
+//        if (!cuisineName.matches("^[a-zA-Z\\s]+$")) {
+//            log.warn("Invalid cuisine name: '{}'. It must contain only letters and spaces.", cuisineName);
+//            throw new InvalidValueExceptionHandler("Cuisine name can only contain letters and spaces, without numbers or special characters.");
+//        }
 
         // Check if a cuisine with the same name already exists
         Optional<CuisineEntity> existingCuisine = cuisineRepository.findByCuisineName(cuisineName);

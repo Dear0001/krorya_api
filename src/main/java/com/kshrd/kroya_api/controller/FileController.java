@@ -5,8 +5,11 @@ import com.kshrd.kroya_api.payload.File.FileResponse;
 import com.kshrd.kroya_api.service.File.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.MediaTypeFactory;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -14,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/v1/fileView")
@@ -69,7 +73,12 @@ public class FileController {
     @GetMapping("/{fileName}")
     public ResponseEntity<Resource> getFile(@PathVariable String fileName) throws IOException {
         Resource file = fileService.getFile(fileName);
-        return ResponseEntity.ok().contentType(MediaType.IMAGE_PNG).body(file);
+        MediaType mediaType = MediaTypeFactory.getMediaType(fileName).orElse(MediaType.APPLICATION_OCTET_STREAM);
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .cacheControl(CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic())
+                .header(HttpHeaders.ETAG, "\"" + fileName + "\"")
+                .body(file);
 //        return null;
     }
 }
